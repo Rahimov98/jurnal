@@ -3,967 +3,863 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Порядок</title>
-<meta name="theme-color" content="#0F231D">
+<title>Журнал Студентов</title>
+<meta name="theme-color" content="#2c3e50">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Порядок">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230F231D'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23F2B705' stroke-width='8'/%3E%3Cpath d='M50 30 L50 50 L64 58' stroke='%235FD3BC' stroke-width='8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230F231D'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23F2B705' stroke-width='8'/%3E%3Cpath d='M50 30 L50 50 L64 58' stroke='%235FD3BC' stroke-width='8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22%D0%9F%D0%BE%D1%80%D1%8F%D0%B4%D0%BE%D0%BA%22,%22short_name%22:%22%D0%9F%D0%BE%D1%80%D1%8F%D0%B4%D0%BE%D0%BA%22,%22display%22:%22standalone%22,%22background_color%22:%22%230F231D%22,%22theme_color%22:%22%230F231D%22,%22start_url%22:%22.%22}">
+<meta name="apple-mobile-web-app-title" content="Журнал Студентов">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232c3e50'/%3E%3Crect x='20' y='20' width='60' height='60' fill='none' stroke='%233498db' stroke-width='3'/%3E%3Crect x='25' y='30' width='50' height='8' fill='%2327ae60'/%3E%3Crect x='25' y='42' width='50' height='8' fill='%23f39c12'/%3E%3Crect x='25' y='54' width='50' height='8' fill='%23e74c3c'/%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22%D0%96%D1%83%D1%80%D0%BD%D0%B0%D0%BB%20%D0%A1%D1%82%D1%83%D0%B4%D0%B5%D0%BD%D1%82%D0%BE%D0%B2%22,%22short_name%22:%22%D0%96%D1%83%D1%80%D0%BD%D0%B0%D0%BB%22,%22display%22:%22standalone%22,%22background_color%22:%22%232c3e50%22,%22theme_color%22:%22%232c3e50%22,%22start_url%22:%22.%22}">
 <style>
   :root{
-    --bg:#0F231D; --surface:#16332B; --surface-2:#1D3E34; --line:#284A3F;
-    --text:#EDF3F0; --muted:#8FB0A4; --amber:#F2B705; --mint:#5FD3BC;
-    --coral:#E4572E; --lilac:#B79CED;
+    --bg:#ecf0f1; --surface:#fff; --surface-2:#f8f9fa; --line:#bdc3c7;
+    --text:#2c3e50; --muted:#7f8c8d; --primary:#3498db; --success:#27ae60;
+    --warning:#f39c12; --danger:#e74c3c;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
-  body{margin:0; background:var(--bg); color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  body{margin:0; background:var(--bg); color:var(--text); font-family:Arial,sans-serif;
     overscroll-behavior-y:none; padding-top:env(safe-area-inset-top);}
-  #app{max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;
-    padding-bottom:calc(70px + env(safe-area-inset-bottom));}
-  header.top{padding:22px 20px 14px; display:flex; align-items:baseline; justify-content:space-between;}
-  header.top h1{font-size:22px; margin:0; font-weight:700; letter-spacing:-0.02em;}
-  header.top .date{font-size:13px; color:var(--muted);}
-  main{flex:1; padding:0 16px 24px;}
+  #app{max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;
+    padding-bottom:calc(64px + env(safe-area-inset-bottom));}
+  header.top{padding:18px 16px; background:var(--surface); border-bottom:2px solid var(--primary);
+    display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 4px rgba(0,0,0,.1);}
+  header.top h1{font-size:20px; margin:0; font-weight:700;}
+  header.top .subtitle{font-size:12px; color:var(--muted); margin-top:2px;}
+  main{flex:1; padding:0 12px 24px; overflow-y:auto;}
   section.view{display:none;}
-  section.view.active{display:block; animation:fade .18s ease;}
+  section.view.active{display:block; animation:fade .2s ease;}
   @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
 
-  .card{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:14px;}
-  .card h2{font-size:14px; margin:0 0 12px; color:var(--muted); font-weight:600;}
-  .card-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
-  .card-row h2{margin:0;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px;
+    margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .card h2{font-size:14px; margin:0 0 12px; color:var(--primary); font-weight:700;}
 
-  .stats{display:flex; gap:10px; margin-bottom:14px;}
-  .stat{flex:1; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:12px 14px;}
-  .stat .n{font-size:20px; font-weight:700;}
-  .stat .l{font-size:11px; color:var(--muted); margin-top:2px;}
-
-  .form-row{display:flex; flex-direction:column; gap:10px; margin-bottom:10px;}
+  .form-row{display:flex; flex-direction:column; gap:8px; margin-bottom:10px;}
   input, select, textarea{background:var(--surface-2); border:1px solid var(--line); color:var(--text);
-    padding:12px; border-radius:10px; font-size:15px; width:100%; font-family:inherit;}
+    padding:10px 12px; border-radius:8px; font-size:14px; width:100%; font-family:inherit;}
   input::placeholder{color:var(--muted);}
-  .two-col{display:flex; gap:10px;}
+  input[readonly]{background:var(--surface-2); color:var(--muted);}
+  .two-col{display:flex; gap:8px;}
   .two-col > *{flex:1;}
-  .three-col{display:flex; gap:8px;}
-  .three-col > *{flex:1;}
-  button.primary{background:var(--amber); color:#1a1400; border:none; padding:13px; border-radius:10px;
-    font-size:15px; font-weight:700; width:100%;}
+  button.primary{background:var(--primary); color:#fff; border:none; padding:11px; border-radius:8px;
+    font-size:14px; font-weight:700; width:100%; cursor:pointer;}
   button.primary:active{opacity:.85;}
-  button.ghost{background:none; border:1px solid var(--line); color:var(--muted); padding:9px; border-radius:10px; font-size:13px; width:100%; font-family:inherit;}
-  .add-toggle{display:flex; align-items:center; justify-content:center; gap:6px; color:var(--amber);
-    font-weight:600; font-size:14px; padding:10px; margin-bottom:10px;}
+  button.ghost{background:none; border:1px solid var(--line); color:var(--muted); padding:9px;
+    border-radius:8px; font-size:12px; width:100%; font-family:inherit; cursor:pointer;}
+  .toggle-form{color:var(--primary); font-weight:600; font-size:13px; padding:8px; text-align:center;
+    cursor:pointer; user-select:none;}
 
-  .item{display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--line);}
-  .item:last-child{border-bottom:none;}
-  .chk{width:26px; height:26px; min-width:26px; border-radius:50%; border:2px solid var(--muted);
-    display:flex; align-items:center; justify-content:center; font-size:14px;}
-  .chk.done{background:var(--mint); border-color:var(--mint); color:#0F231D;}
-  .chk.mid{background:none; border-color:var(--amber); color:var(--amber);}
-  .item .body{flex:1; min-width:0;}
-  .item .title{font-size:15px; font-weight:600; line-height:1.3;}
-  .item .title.strike{text-decoration:line-through; color:var(--muted);}
-  .item .meta{font-size:12px; color:var(--muted); margin-top:2px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
-  .tag{display:inline-block; padding:1px 7px; border-radius:20px; background:var(--surface-2); font-size:11px;}
-  .tag.high{color:var(--coral);} .tag.med{color:var(--amber);} .tag.low{color:var(--mint);}
-  .tag.overdue{background:rgba(228,87,46,.18); color:var(--coral); font-weight:700;}
-  .tag.recur{color:var(--lilac);}
-  .icon-btn{color:var(--muted); font-size:16px; padding:4px 6px; flex-shrink:0;}
-  .icon-btn.edit{color:var(--mint);}
-  .row-actions{display:flex; gap:2px; flex-shrink:0;}
-  .empty{text-align:center; color:var(--muted); font-size:13px; padding:24px 10px;}
+  .student-row{padding:12px; background:var(--surface-2); border-radius:10px; margin-bottom:8px;
+    border-left:3px solid var(--primary); cursor:pointer;}
+  .student-name{font-weight:600; font-size:14px; margin-bottom:6px; display:flex; justify-content:space-between;}
+  .student-stats{font-size:11px; color:var(--muted); display:flex; gap:16px; flex-wrap:wrap;}
+  .stat-item{display:flex; flex-direction:column;}
+  .stat-val{font-weight:700; font-size:13px; color:var(--text);}
 
-  /* subtasks */
-  .subtask-toggle{font-size:11px; color:var(--mint); margin-top:3px;}
-  .subtasks{margin:8px 0 0 0; padding-left:0;}
-  .subtask-row{display:flex; align-items:center; gap:8px; padding:6px 0;}
-  .subtask-row .chk{width:20px; height:20px; min-width:20px; font-size:11px;}
-  .subtask-row .stxt{flex:1; font-size:13px;}
-  .subtask-row .stxt.strike{text-decoration:line-through; color:var(--muted);}
-  .sub-add{display:flex; gap:6px; margin-top:6px;}
-  .sub-add input{padding:8px 10px; font-size:13px;}
-  .sub-add button{background:var(--surface-2); border:1px solid var(--line); color:var(--mint); border-radius:8px; padding:0 12px; font-size:13px;}
+  .attendance-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .attendance-row:last-child{border-bottom:none;}
+  .att-name{flex:1; font-size:13px; font-weight:500;}
+  .att-control{display:flex; gap:4px;}
+  .att-btn{width:32px; height:32px; border:1px solid var(--line); border-radius:6px; background:var(--surface-2);
+    cursor:pointer; font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center;}
+  .att-btn.active{color:#fff; font-weight:700;}
+  .att-present.active{background:var(--success);}
+  .att-absent.active{background:var(--danger);}
+  .att-late.active{background:var(--warning);}
 
-  /* toolbar */
-  .toolbar{display:flex; gap:8px; margin-bottom:12px;}
-  .toolbar input{flex:1.4;}
-  .toolbar select{flex:1;}
+  .grade-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .grade-row:last-child{border-bottom:none;}
+  .grade-name{flex:1; font-size:13px;}
+  .grade-input{width:56px; padding:6px; font-size:12px; text-align:center;}
 
-  /* habits */
-  .month-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
-  .month-nav .lbl{font-weight:700; font-size:15px; text-transform:capitalize;}
-  .month-nav button{background:var(--surface-2); border:1px solid var(--line); color:var(--text); width:34px; height:34px; border-radius:10px; font-size:16px;}
-  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
-  .cal-dow{font-size:10px; color:var(--muted); text-align:center; padding-bottom:4px;}
-  .cal-cell{aspect-ratio:1; border-radius:8px; background:var(--surface-2); display:flex; align-items:center; justify-content:center;
-    font-size:11px; color:var(--muted); position:relative;}
-  .cal-cell.empty2{background:none;}
-  .cal-cell.heat1{background:rgba(95,211,188,.18);}
-  .cal-cell.heat2{background:rgba(95,211,188,.4);}
-  .cal-cell.heat3{background:rgba(95,211,188,.7); color:#0F231D; font-weight:700;}
-  .cal-cell.today-ring{box-shadow:inset 0 0 0 2px var(--amber);}
-  .habit-row{padding:14px 4px; border-bottom:1px solid var(--line);}
-  .habit-row:last-child{border-bottom:none;}
-  .habit-top{display:flex; align-items:center; gap:10px;}
-  .habit-name{flex:1; font-size:15px; font-weight:600; min-width:0;}
-  .habit-streak{font-size:11px; color:var(--muted); margin-top:2px;}
-  .goal-row{display:flex; align-items:center; gap:8px; margin-top:10px;}
-  .goal-row input{width:52px; padding:6px 8px; text-align:center; flex:none;}
-  .goal-bar-wrap{flex:1;}
-  .bar-track{height:6px; background:var(--surface-2); border-radius:4px; overflow:hidden;}
-  .bar-fill{height:100%; background:var(--mint); border-radius:4px;}
-  .bar-fill.over{background:var(--coral);}
-  .habit-cal{margin-top:10px;}
-  .habit-cal .cal-cell{cursor:pointer;}
-  .habit-cal .cal-cell.on{background:var(--mint); color:#0F231D; font-weight:700;}
-  .note-dot{position:absolute; bottom:2px; right:2px; width:4px; height:4px; border-radius:50%; background:var(--amber);}
-  .notes-toggle{font-size:11px; color:var(--lilac); margin-top:8px; display:inline-block;}
-  .notes-panel{margin-top:8px; background:var(--surface-2); border-radius:10px; padding:10px;}
-  .note-item{display:flex; justify-content:space-between; gap:8px; font-size:12px; padding:5px 0; border-bottom:1px solid var(--line);}
-  .note-item:last-child{border-bottom:none;}
-  .note-item .nd{color:var(--muted); min-width:70px;}
+  .stat-box{display:inline-flex; flex-direction:column; align-items:center; padding:12px 10px; min-width:64px;
+    background:var(--surface-2); border-radius:10px; margin:0 8px 8px 0; text-align:center;}
+  .stat-box .val{font-size:18px; font-weight:700; color:var(--primary);}
+  .stat-box .lbl{font-size:11px; color:var(--muted); margin-top:4px;}
 
-  /* charts */
-  .chart-wrap{display:flex; align-items:center; gap:16px;}
-  .legend{flex:1; display:flex; flex-direction:column; gap:8px;}
-  .legend-item{display:flex; align-items:center; gap:8px; font-size:12.5px;}
-  .legend-dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
-  .legend-val{margin-left:auto; color:var(--muted);}
+  .icon-btn{background:none; border:none; color:var(--primary); font-size:16px; padding:6px; cursor:pointer;}
+  .icon-btn.danger{color:var(--danger);}
 
-  /* budgets */
-  .budget-row{padding:10px 0; border-bottom:1px solid var(--line);}
-  .budget-row:last-child{border-bottom:none;}
-  .budget-top{display:flex; justify-content:space-between; align-items:center; font-size:13px; margin-bottom:6px;}
-  .budget-top .name{font-weight:600;}
-  .budget-top .amt{color:var(--muted);}
-  .budget-top input{width:78px; padding:6px 8px; font-size:12px; text-align:right;}
+  .empty{text-align:center; color:var(--muted); font-size:12px; padding:24px 10px;}
 
-  /* piggybanks */
-  .pb-row{padding:12px 0; border-bottom:1px solid var(--line);}
-  .pb-row:last-child{border-bottom:none;}
-  .pb-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
-  .pb-header .name{font-weight:600; font-size:14px;}
-  .pb-header .progress{text-align:right; font-size:12px;}
-  .pb-progress{display:flex; align-items:center; gap:8px; font-size:12px;}
-  .pb-bar{flex:1;}
-  .pb-bar .bar-track{margin:0;}
-  .pb-actions{display:flex; gap:8px; margin-top:8px;}
-  .pb-actions input{width:78px; padding:6px 8px; font-size:12px; text-align:right; flex:none;}
-  .pb-actions button{flex:1; background:var(--surface-2); border:1px solid var(--line); color:var(--mint); border-radius:8px; padding:6px; font-size:12px; font-family:inherit;}
+  nav.tabbar{position:fixed; bottom:0; left:0; right:0; max-width:500px; margin:0 auto;
+    background:var(--surface); border-top:1px solid var(--line); display:flex;
+    padding-bottom:env(safe-area-inset-bottom); box-shadow:0 -1px 3px rgba(0,0,0,.1);}
+  nav.tabbar button{flex:1; background:none; border:none; color:var(--muted); padding:10px 0 8px;
+    display:flex; flex-direction:column; align-items:center; gap:3px; font-size:9px; font-family:inherit; cursor:pointer;}
+  nav.tabbar button.active{color:var(--primary);}
+  nav.tabbar svg{width:19px; height:19px;}
 
-  nav.tabbar{position:fixed; bottom:0; left:0; right:0; max-width:480px; margin:0 auto;
-    background:rgba(22,51,43,.92); backdrop-filter:blur(10px); border-top:1px solid var(--line);
-    display:flex; padding-bottom:env(safe-area-inset-bottom);}
-  nav.tabbar button{flex:1; background:none; border:none; color:var(--muted); padding:9px 0 7px;
-    display:flex; flex-direction:column; align-items:center; gap:2px; font-size:10.5px; font-family:inherit;}
-  nav.tabbar button.active{color:var(--amber);}
-  nav.tabbar svg{width:21px; height:21px;}
-  select{-webkit-appearance:none; appearance:none;}
   .hidden-file{display:none;}
+
+  /* ===== LOCK SCREEN ===== */
+  #lockScreen{position:fixed; inset:0; z-index:100; background:linear-gradient(160deg,#2c3e50 0%,#1a252f 100%);
+    display:flex; align-items:center; justify-content:center; padding:20px;}
+  #lockScreen.hidden{display:none;}
+  .lock-box{background:var(--surface); border-radius:16px; padding:28px 22px; width:100%; max-width:340px;
+    box-shadow:0 12px 40px rgba(0,0,0,.4); text-align:center;}
+  .lock-box .lock-icon{font-size:42px; margin-bottom:6px;}
+  .lock-box h2{margin:0 0 4px; font-size:19px; color:var(--text);}
+  .lock-box p{font-size:12px; color:var(--muted); margin:0 0 18px;}
+  .lock-box input{margin-bottom:12px; text-align:center; letter-spacing:2px;}
+  .lock-err{color:var(--danger); font-size:12px; min-height:16px; margin-bottom:8px; font-weight:600;}
+
+  /* ===== CLASS JOURNAL TABLE ===== */
+  .journal-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:10px;}
+  table.journal{border-collapse:collapse; font-size:12px; min-width:100%;}
+  table.journal th, table.journal td{border:1px solid var(--line); padding:0; text-align:center;}
+  table.journal thead th{background:var(--surface-2); padding:6px 4px; font-size:11px; white-space:nowrap; position:sticky; top:0;}
+  table.journal thead th .j-dow{display:block; font-size:9px; color:var(--muted); font-weight:400;}
+  table.journal thead th .j-count{display:block; font-size:9px; color:var(--success); font-weight:700;}
+  table.journal thead th.j-name-col, table.journal td.j-name{position:sticky; left:0; background:var(--surface); z-index:2;
+    min-width:130px; max-width:130px; text-align:left; padding:8px; font-weight:600;}
+  table.journal thead th.j-name-col{z-index:3; background:var(--surface-2);}
+  table.journal td.j-name{border-right:2px solid var(--primary);}
+  .j-cell{width:100%; min-width:38px; height:38px; border:none; background:transparent; cursor:pointer;
+    font-size:14px; font-weight:700; font-family:inherit; color:var(--muted); padding:0;}
+  .j-cell.mark-present{color:var(--success); background:rgba(39,174,96,.12);}
+  .j-cell.mark-absent{color:var(--danger); background:rgba(231,76,60,.12);}
+  .j-cell.mark-late{color:var(--warning); background:rgba(243,156,18,.12);}
+  .j-cell:active{opacity:.6;}
+  td.j-pct{font-weight:700; color:var(--primary); white-space:nowrap; padding:8px;}
+  .legend{display:flex; gap:14px; font-size:11px; color:var(--muted); margin-top:8px; flex-wrap:wrap;}
+  .legend span{display:flex; align-items:center; gap:4px;}
+
+  /* ===== MODAL ===== */
+  .modal-back{position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-end; justify-content:center; z-index:50;}
+  .modal-back.open{display:flex;}
+  .modal{background:var(--surface); width:100%; max-width:500px; max-height:82vh; overflow-y:auto;
+    border-radius:16px 16px 0 0; padding:18px 16px calc(16px + env(safe-area-inset-bottom)); animation:slideUp .2s ease;}
+  @keyframes slideUp{from{transform:translateY(40px); opacity:.5} to{transform:none; opacity:1}}
+  .modal h3{margin:0 0 4px; font-size:17px;}
+  .modal .m-sub{font-size:12px; color:var(--muted); margin-bottom:14px;}
+  .m-section{margin-bottom:16px;}
+  .m-section h4{font-size:12px; color:var(--primary); margin:0 0 8px; text-transform:uppercase; letter-spacing:.4px;}
+  .m-line{display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .m-close{width:100%; margin-top:8px;}
+  .badge{display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700;}
+  .badge.g{background:rgba(52,152,219,.15); color:var(--primary);}
+  .badge.y{background:rgba(243,156,18,.15); color:var(--warning);}
+  .badge.r{background:rgba(231,76,60,.15); color:var(--danger);}
 </style>
 </head>
 <body>
+
+<!-- ===== LOCK SCREEN ===== -->
+<div id="lockScreen">
+  <div class="lock-box">
+    <div class="lock-icon">🔐</div>
+    <h2>Журнал Студентов</h2>
+    <p>Введите пароль для входа</p>
+    <input type="password" id="lockInput" placeholder="Пароль" autocomplete="off">
+    <div class="lock-err" id="lockErr"></div>
+    <button class="primary" onclick="tryUnlock()">Войти</button>
+  </div>
+</div>
+
 <div id="app">
   <header class="top">
-    <h1 id="viewTitle">Задачи</h1>
-    <div class="date" id="todayLabel"></div>
+    <div>
+      <h1>📋 Журнал</h1>
+      <div class="subtitle" id="headerSubtitle">Классный журнал</div>
+    </div>
+    <div style="font-size:12px; color:var(--muted);">
+      <div id="dayCounter">Студентов: 0</div>
+    </div>
   </header>
 
   <main>
-    <!-- TASKS -->
-    <section class="view active" id="view-tasks">
-      <div class="stats">
-        <div class="stat"><div class="n" id="t-total">0</div><div class="l">всего</div></div>
-        <div class="stat"><div class="n" id="t-done">0</div><div class="l">готово</div></div>
-        <div class="stat"><div class="n" id="t-pct">0%</div><div class="l">прогресс</div></div>
+    <!-- ===== 1. CLASS JOURNAL (основной) ===== -->
+    <section class="view active" id="view-journal">
+      <div class="card">
+        <h2>📖 Основной журнал</h2>
+        <input id="j-group" list="groups-list" placeholder="Группа (пусто = все)" oninput="renderJournal()" style="margin-bottom:8px;">
+        <div class="two-col" style="margin-bottom:10px;">
+          <select id="j-course" onchange="renderJournal()">
+            <option value="">Все курсы</option>
+            <option value="1">1 курс</option>
+            <option value="2">2 курс</option>
+            <option value="3">3 курс</option>
+            <option value="4">4 курс</option>
+          </select>
+          <button class="ghost" style="width:auto; padding:9px 14px;" id="btnAddDay" type="button">+ День</button>
+        </div>
+        <input id="j-add-day" type="date" style="margin-bottom:10px;" onchange="addJournalDay(this.value)">
+        <div id="j-table"></div>
+        <div class="legend">
+          <span><b style="color:var(--success)">✓</b> присутствовал</span>
+          <span><b style="color:var(--danger)">✗</b> отсутствовал</span>
+          <span><b style="color:var(--warning)">⏱</b> опоздание</span>
+          <span>нажми на ячейку — отметка меняется</span>
+        </div>
+        <button class="primary" style="margin-top:12px;" onclick="saveJournal()">💾 Сохранить журнал</button>
       </div>
 
       <div class="card">
-        <h2>Статусы задач</h2>
-        <div class="chart-wrap">
-          <div id="t-donut"></div>
-          <div class="legend" id="t-legend"></div>
+        <h2>⚡ Быстрая отметка на сегодня</h2>
+        <div id="j-quick"></div>
+      </div>
+    </section>
+
+    <!-- ===== 2. STUDENTS ===== -->
+    <section class="view" id="view-students">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px;">
+          <h2 style="margin:0;">Студенты</h2>
+          <select id="s-course-filter" onchange="renderStudents()" style="width:110px;">
+            <option value="">Все курсы</option>
+            <option value="1">1 курс</option>
+            <option value="2">2 курс</option>
+            <option value="3">3 курс</option>
+            <option value="4">4 курс</option>
+          </select>
+        </div>
+        <input id="s-group-filter" list="groups-list" placeholder="Фильтр по группе" oninput="renderStudents()" style="margin-bottom:8px;">
+        <input id="s-search" placeholder="Поиск по имени или ID..." oninput="renderStudents()" style="margin-bottom:10px;">
+        <div class="toggle-form" id="btnToggleForm">+ Добавить студента</div>
+        <div id="s-form" style="display:none; margin-top:10px;">
+          <div class="form-row">
+            <input id="s-name" placeholder="Полное имя">
+            <input id="s-studentid" readonly placeholder="ID студента">
+            <input id="s-group" list="groups-list" placeholder="Группа (напр. ИВТ-101)">
+            <select id="s-course">
+              <option value="1">1 курс</option>
+              <option value="2">2 курс</option>
+              <option value="3">3 курс</option>
+              <option value="4">4 курс</option>
+            </select>
+            <button class="primary" onclick="addStudent()">Добавить</button>
+          </div>
         </div>
       </div>
+      <div id="s-list"></div>
+    </section>
 
-      <div class="toolbar">
-        <input id="t-search" placeholder="Поиск задач..." oninput="renderTasks()">
-        <select id="t-filter-cat" onchange="renderTasks()"><option value="">Все категории</option></select>
+    <!-- ===== 3. GRADES ===== -->
+    <section class="view" id="view-grades">
+      <div class="card">
+        <h2>Оценки</h2>
+        <input id="g-subject" list="g-subjects" placeholder="Предмет (напр. Математика)" style="margin-bottom:8px;">
+        <datalist id="g-subjects"></datalist>
+        <input id="g-group" list="groups-list" placeholder="Группа (пусто = все)" oninput="renderGrades(); renderGradeHistory();" style="margin-bottom:8px;">
+        <div class="two-col" style="margin-bottom:8px;">
+          <select id="g-course" onchange="renderGrades(); renderGradeHistory();">
+            <option value="">Все курсы</option>
+            <option value="1">1 курс</option>
+            <option value="2">2 курс</option>
+            <option value="3">3 курс</option>
+            <option value="4">4 курс</option>
+          </select>
+          <input id="g-date" type="date" onchange="renderGrades()">
+        </div>
+        <div id="g-list"></div>
+        <button class="primary" style="margin-top:12px;" onclick="saveGrades()">Сохранить оценки</button>
       </div>
-      <div class="toolbar">
-        <select id="t-sort" onchange="renderTasks()" style="flex:1">
-          <option value="date">Сорт.: по добавлению</option>
-          <option value="prio">Сорт.: по приоритету</option>
-          <option value="due">Сорт.: по дедлайну</option>
+
+      <div class="card">
+        <h2>История оценок</h2>
+        <div id="g-history"></div>
+      </div>
+    </section>
+
+    <!-- ===== 4. STATISTICS ===== -->
+    <section class="view" id="view-stats">
+      <div class="card">
+        <h2>Статистика</h2>
+        <input id="st-group" list="groups-list" placeholder="Группа (пусто = все)" oninput="renderStats()" style="margin-bottom:8px;">
+        <select id="st-course" onchange="renderStats()" style="margin-bottom:12px;">
+          <option value="">Все курсы</option>
+          <option value="1">1 курс</option>
+          <option value="2">2 курс</option>
+          <option value="3">3 курс</option>
+          <option value="4">4 курс</option>
         </select>
+        <div id="st-overview"></div>
       </div>
 
-      <div class="add-toggle" onclick="toggleForm('t-form')">+ Добавить задачу</div>
-      <div class="card" id="t-form" style="display:none">
-        <div class="form-row">
-          <input id="t-input-text" placeholder="Что нужно сделать?">
-          <div class="two-col">
-            <input id="t-input-cat" placeholder="Категория">
-            <select id="t-input-prio">
-              <option value="Низкий">Низкий приоритет</option>
-              <option value="Средний" selected>Средний приоритет</option>
-              <option value="Высокий">Высокий приоритет</option>
-            </select>
-          </div>
-          <div class="two-col">
-            <input id="t-input-due" type="date">
-            <select id="t-input-recur">
-              <option value="">Не повторять</option>
-              <option value="daily">Каждый день</option>
-              <option value="weekly">Каждую неделю</option>
-              <option value="monthly">Каждый месяц</option>
-            </select>
-          </div>
-          <button class="primary" id="t-submit-btn" onclick="submitTask()">Добавить</button>
-        </div>
+      <div class="card">
+        <h2>🏆 Топ студентов по посещаемости</h2>
+        <div id="st-top-attendance"></div>
       </div>
 
-      <div class="card" id="t-list"></div>
+      <div class="card">
+        <h2>⚠️ Слабая посещаемость</h2>
+        <div id="st-risk"></div>
+      </div>
+
+      <div class="card">
+        <h2>Средние оценки по предметам</h2>
+        <div id="st-avg-grades"></div>
+      </div>
     </section>
 
-    <!-- HABITS -->
-    <section class="view" id="view-habits">
+    <!-- ===== 5. SETTINGS ===== -->
+    <section class="view" id="view-settings">
       <div class="card">
-        <div class="month-nav">
-          <button onclick="shiftHabitMonth(-1)">‹</button>
-          <div class="lbl" id="h-month-label"></div>
-          <button onclick="shiftHabitMonth(1)">›</button>
-        </div>
-        <div class="cal-grid" id="h-overview-cal"></div>
+        <h2>🔐 Безопасность</h2>
+        <p style="font-size:12px; color:var(--muted); margin:0 0 10px;" id="pwdStatus">Пароль не установлен — журнал открывается без входа.</p>
+        <input type="password" id="pwd-cur" placeholder="Текущий пароль" style="margin-bottom:8px; display:none;">
+        <input type="password" id="pwd-new" placeholder="Новый пароль" style="margin-bottom:10px;">
+        <button class="primary" onclick="setPassword()">💾 Сохранить пароль</button>
+        <button class="ghost" id="btnRemovePwd" style="margin-top:8px; display:none; color:var(--danger); border-color:var(--danger);" onclick="removePassword()">🔓 Отключить пароль</button>
       </div>
 
-      <div class="add-toggle" onclick="toggleForm('h-form')">+ Добавить привычку</div>
-      <div class="card" id="h-form" style="display:none">
-        <div class="form-row">
-          <input id="h-input-name" placeholder="Название привычки">
-          <button class="primary" onclick="addHabit()">Добавить</button>
-        </div>
-      </div>
-
-      <div class="card" id="h-list"></div>
-    </section>
-
-    <!-- FINANCE -->
-    <section class="view" id="view-fin">
-      <div class="month-nav" style="margin-bottom:12px;">
-        <button onclick="shiftFinMonth(-1)">‹</button>
-        <div class="lbl" id="f-month-label"></div>
-        <button onclick="shiftFinMonth(1)">›</button>
-      </div>
-
-      <div class="stats">
-        <div class="stat"><div class="n" id="f-income" style="color:var(--mint)">0</div><div class="l">доходы</div></div>
-        <div class="stat"><div class="n" id="f-expense" style="color:var(--coral)">0</div><div class="l">расходы</div></div>
-        <div class="stat"><div class="n" id="f-balance">0</div><div class="l">баланс</div></div>
-      </div>
-
-      <div class="card">
-        <h2>Расходы по категориям</h2>
-        <div class="chart-wrap">
-          <div id="f-donut"></div>
-          <div class="legend" id="f-legend"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Лимиты бюджета</h2>
-        <div id="f-budgets"></div>
-        <div class="two-col" style="margin-top:10px;">
-          <input id="b-input-cat" placeholder="Категория">
-          <input id="b-input-limit" type="number" inputmode="decimal" placeholder="Лимит">
-        </div>
-        <button class="ghost" style="margin-top:8px;" onclick="addBudget()">+ Добавить лимит</button>
-      </div>
-
-      <div class="card">
-        <h2>💰 Копилки (цели сбережений)</h2>
-        <div id="f-piggybanks"></div>
-        <div class="two-col" style="margin-top:10px;">
-          <input id="pb-input-name" placeholder="Название копилки">
-          <input id="pb-input-goal" type="number" inputmode="decimal" placeholder="Целевая сумма">
-        </div>
-        <button class="ghost" style="margin-top:8px;" onclick="addPiggybank()">+ Добавить копилку</button>
-      </div>
-
-      <div class="add-toggle" onclick="toggleForm('f-form')">+ Добавить операцию</div>
-      <div class="card" id="f-form" style="display:none">
-        <div class="form-row">
-          <div class="two-col">
-            <input id="f-input-date" type="date">
-            <select id="f-input-type">
-              <option value="Расход">Расход</option>
-              <option value="Доход">Доход</option>
-            </select>
-          </div>
-          <div class="two-col">
-            <input id="f-input-cat" placeholder="Категория">
-            <input id="f-input-amt" type="number" inputmode="decimal" placeholder="Сумма">
-          </div>
-          <input id="f-input-note" placeholder="Комментарий (необязательно)">
-          <button class="primary" id="f-submit-btn" onclick="submitTx()">Добавить</button>
-        </div>
-      </div>
-
-      <div class="card" id="f-list"></div>
-    </section>
-
-    <!-- MORE / BACKUP -->
-    <section class="view" id="view-more">
       <div class="card">
         <h2>Резервная копия</h2>
-        <p style="font-size:13px; color:var(--muted); margin:0 0 12px;">Сохрани все данные в файл или восстанови их на другом телефоне.</p>
-        <button class="primary" onclick="exportData()">Скачать резервную копию</button>
-        <button class="ghost" style="margin-top:10px;" onclick="document.getElementById('importFile').click()">Восстановить из файла</button>
+        <p style="font-size:12px; color:var(--muted); margin:0 0 10px;">Сохрани и восстанови данные журнала.</p>
+        <button class="primary" onclick="exportData()">📥 Скачать данные</button>
+        <button class="ghost" style="margin-top:8px;" onclick="document.getElementById('importFile').click()">📤 Загрузить данные</button>
         <input type="file" id="importFile" class="hidden-file" accept="application/json" onchange="importData(event)">
       </div>
+
       <div class="card">
-        <h2>Сброс</h2>
-        <p style="font-size:13px; color:var(--muted); margin:0 0 12px;">Удалить все задачи, привычки и операции безвозвратно.</p>
-        <button class="ghost" style="color:var(--coral); border-color:var(--coral);" onclick="resetAll()">Очистить все данные</button>
+        <h2>Очистка</h2>
+        <p style="font-size:12px; color:var(--muted); margin:0 0 10px;">Удалить все данные без возможности восстановления.</p>
+        <button class="ghost" style="color:var(--danger); border-color:var(--danger);" onclick="resetAll()">🗑️ Очистить всё</button>
       </div>
     </section>
   </main>
 
   <nav class="tabbar">
-    <button class="active" data-view="tasks" onclick="switchView('tasks')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      Задачи
+    <button class="active" data-view="journal" onclick="switchView('journal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Журнал
     </button>
-    <button data-view="habits" onclick="switchView('habits')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-      Привычки
+    <button data-view="students" onclick="switchView('students')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Студенты
     </button>
-    <button data-view="fin" onclick="switchView('fin')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-      Финансы
+    <button data-view="grades" onclick="switchView('grades')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+      Оценки
     </button>
-    <button data-view="more" onclick="switchView('more')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <button data-view="stats" onclick="switchView('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 3 9 3 9 9 3 9 3 3"/><polyline points="15 3 21 3 21 9 15 9 15 3"/><polyline points="3 15 9 15 9 21 3 21 3 15"/><polyline points="15 15 21 15 21 21 15 21 15 15"/></svg>
+      Статистика
+    </button>
+    <button data-view="settings" onclick="switchView('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m6.08 0l4.24-4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m6.08 0l4.24 4.24"/></svg>
       Ещё
     </button>
   </nav>
 </div>
 
-<script>
-/* ---------- date helpers (local, no UTC drift) ---------- */
-function pad(n){ return String(n).padStart(2,'0'); }
-function isoLocal(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-function todayISO(){ return isoLocal(new Date()); }
-function addDays(iso, n){ const d = new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return isoLocal(d); }
-function addMonthsIso(iso, n){ const d = new Date(iso+'T00:00:00'); d.setMonth(d.getMonth()+n); return isoLocal(d); }
-function monthLabel(d){ return d.toLocaleDateString('ru-RU', {month:'long', year:'numeric'}); }
-function isoMonthOf(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}`; }
+<datalist id="groups-list"></datalist>
 
-/* ---------- storage ---------- */
-const KEY = 'poryadok_v2';
-function migrate(s){
-  s = s || {};
-  s.tasks = (s.tasks||[]).map(t=>({
-    id:t.id, text:t.text||'', cat:t.cat||'Общее', prio:t.prio||'Средний',
-    due:t.due||'', status:t.status||'todo', subtasks:t.subtasks||[], recur:t.recur||null
-  }));
-  s.habits = (s.habits||[]).map(h=>({
-    id:h.id, name:h.name||'', dates:h.dates||[], notes:h.notes||{}, goal:h.goal||5
-  }));
-  s.tx = (s.tx||[]).map(t=>({...t}));
-  s.budgets = s.budgets || {};
-  s.piggybanks = (s.piggybanks||[]).map(p=>({id:p.id, name:p.name||'', goal:p.goal||0, saved:p.saved||0}));
-  return s;
-}
-function loadOld(){
-  try { return JSON.parse(localStorage.getItem('poryadok_v1')); } catch(e){ return null; }
-}
+<!-- ===== STUDENT MODAL ===== -->
+<div class="modal-back" id="modalBack" onclick="if(event.target===this) closeModal()">
+  <div class="modal">
+    <h3 id="m-name"></h3>
+    <div class="m-sub" id="m-sub"></div>
+    <div class="m-section">
+      <h4>Посещаемость</h4>
+      <div id="m-attendance"></div>
+    </div>
+    <div class="m-section">
+      <h4>Оценки</h4>
+      <div id="m-grades"></div>
+    </div>
+    <button class="ghost m-close" onclick="closeModal()">Закрыть</button>
+  </div>
+</div>
+
+<script>
+/* ========== STORAGE ========== */
+const KEY = 'journal_v1';
+const PKEY = 'journal_pwd';
 function load(){
-  try {
-    const raw = localStorage.getItem(KEY);
-    if(raw) return migrate(JSON.parse(raw));
-    const old = loadOld();
-    if(old) return migrate(old);
-    return null;
-  } catch(e){ return null; }
+  try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch(e){ return null; }
 }
-const seed = migrate({
-  tasks: [
-    {id:1, text:'Подготовить отчёт по продажам', cat:'Работа', prio:'Высокий', due:'', status:'progress', subtasks:[{id:1,text:'Собрать данные',done:true},{id:2,text:'Сделать графики',done:false}]}
-  ],
-  habits: [
-    {id:1, name:'Пить 2 л воды', dates:[], goal:7},
-    {id:2, name:'Читать 20 минут', dates:[], goal:5},
-    {id:3, name:'Тренировка', dates:[], goal:3}
-  ],
-  tx: [
-    {id:1, date: todayISO(), type:'Доход', cat:'Зарплата', amt:45000, note:'Аванс'},
-    {id:2, date: todayISO(), type:'Расход', cat:'Продукты', amt:3200, note:'Супермаркет'}
-  ],
-  budgets: {'Продукты': 8000},
-  piggybanks: [
-    {id:1, name:'🚗 Машина', goal:500000, saved:45000},
-    {id:2, name:'🏠 Дом', goal:2000000, saved:120000},
-    {id:3, name:'✈️ Отпуск', goal:300000, saved:50000}
+
+/* --- sample dates relative to today so the journal looks alive on first run --- */
+function isoOffset(days){
+  const d = new Date(); d.setDate(d.getDate() - days);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+const seed = {
+  students: [
+    {id:1, name:'Иван Петров', studentId:'001', group:'ИВТ-101', course:1,
+      attendance:{[isoOffset(4)]:'present',[isoOffset(3)]:'present',[isoOffset(2)]:'late',[isoOffset(1)]:'absent'},
+      grades:{'Математика':{[isoOffset(3)]:'4',[isoOffset(1)]:'5'},'Русский язык':{[isoOffset(2)]:'4'}}},
+    {id:2, name:'Мария Сидорова', studentId:'002', group:'ИВТ-101', course:1,
+      attendance:{[isoOffset(4)]:'present',[isoOffset(3)]:'present',[isoOffset(2)]:'present',[isoOffset(1)]:'present'},
+      grades:{'Математика':{[isoOffset(3)]:'5',[isoOffset(1)]:'5'},'Русский язык':{[isoOffset(2)]:'5'}}},
+    {id:3, name:'Алексей Иванов', studentId:'003', group:'ИВТ-101', course:1,
+      attendance:{[isoOffset(4)]:'late',[isoOffset(3)]:'absent',[isoOffset(2)]:'present',[isoOffset(1)]:'present'},
+      grades:{'Математика':{[isoOffset(3)]:'3',[isoOffset(1)]:'4'}}},
+    {id:4, name:'Елена Федорова', studentId:'004', group:'ИВТ-201', course:2,
+      attendance:{[isoOffset(4)]:'present',[isoOffset(3)]:'absent',[isoOffset(2)]:'present',[isoOffset(1)]:'present'},
+      grades:{'Математика':{[isoOffset(3)]:'4'},'Физика':{[isoOffset(1)]:'5'}}},
   ]
-});
+};
 
 let state = load() || seed;
-function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 
-/* ---------- nav ---------- */
-const titles = {tasks:'Задачи', habits:'Привычки', fin:'Финансы', more:'Ещё'};
+/* --- migrate old data: add course, fix grades format --- */
+state.students.forEach(s=>{
+  s.attendance = s.attendance || {};
+  s.grades = s.grades || {};
+  if(!s.course) s.course = 1;
+  Object.keys(s.grades).forEach(k=>{
+    if(k.indexOf('::') === -1 && typeof s.grades[k] === 'string'){
+      const g = s.grades[k];
+      delete s.grades[k];
+      if(!s.grades['Разное']) s.grades['Разное'] = {};
+      s.grades['Разное'][isoOffset(0)] = g;
+    }
+  });
+});
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+save();
+
+/* ========== PASSWORD / LOCK ========== */
+function hashStr(s){
+  let h = 5381;
+  for(let i=0;i<s.length;i++){ h = ((h<<5)+h+s.charCodeAt(i))>>>0; }
+  return 'h'+h.toString(36);
+}
+function getPwd(){ return localStorage.getItem(PKEY); }
+function tryUnlock(){
+  const v = document.getElementById('lockInput').value;
+  if(hashStr(v) === getPwd()){
+    sessionStorage.setItem('journal_unlocked','1');
+    document.getElementById('lockScreen').classList.add('hidden');
+    document.getElementById('lockErr').textContent = '';
+  } else {
+    document.getElementById('lockErr').textContent = 'Неверный пароль, попробуйте ещё раз';
+    document.getElementById('lockInput').value='';
+  }
+}
+function initLock(){
+  if(!getPwd()){ document.getElementById('lockScreen').classList.add('hidden'); }
+  else if(sessionStorage.getItem('journal_unlocked')==='1'){ document.getElementById('lockScreen').classList.add('hidden'); }
+  else {
+    document.getElementById('lockScreen').classList.remove('hidden');
+    setTimeout(()=>document.getElementById('lockInput').focus(), 100);
+  }
+  renderPwdSettings();
+}
+function renderPwdSettings(){
+  const has = !!getPwd();
+  document.getElementById('pwdStatus').textContent = has
+    ? 'Пароль установлен ✅ — журнал защищён при входе.'
+    : 'Пароль не установлен — журнал открывается без входа.';
+  document.getElementById('pwd-cur').style.display = has ? 'block' : 'none';
+  document.getElementById('btnRemovePwd').style.display = has ? 'block' : 'none';
+}
+function setPassword(){
+  const has = !!getPwd();
+  if(has && hashStr(document.getElementById('pwd-cur').value) !== getPwd()){
+    alert('Текущий пароль неверен'); return;
+  }
+  const np = document.getElementById('pwd-new').value;
+  if(np.length < 4){ alert('Пароль должен быть не короче 4 символов'); return; }
+  localStorage.setItem(PKEY, hashStr(np));
+  document.getElementById('pwd-cur').value='';
+  document.getElementById('pwd-new').value='';
+  renderPwdSettings();
+  alert('Пароль сохранён ✅');
+}
+function removePassword(){
+  if(!confirm('Отключить вход по паролю?')) return;
+  if(hashStr(document.getElementById('pwd-cur').value) !== getPwd()){
+    alert('Текущий пароль неверен'); return;
+  }
+  localStorage.removeItem(PKEY);
+  sessionStorage.removeItem('journal_unlocked');
+  document.getElementById('pwd-cur').value='';
+  renderPwdSettings();
+  alert('Пароль отключён');
+}
+
+/* ========== HELPERS ========== */
+function pad(n){ return String(n).padStart(2,'0'); }
+function todayISO(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function escapeHTML(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function fmtDate(iso){ const p = iso.split('-'); return `${p[2]}.${p[1]}`; }
+function weekday(iso){ return ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][new Date(iso+'T00:00:00').getDay()]; }
+function byName(a,b){ return a.name.localeCompare(b.name, 'ru'); }
 function switchView(v){
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.view===v));
-  document.getElementById('viewTitle').textContent = titles[v];
+  if(v==='journal') renderJournal();
+  if(v==='grades'){ renderGrades(); renderGradeHistory(); }
+  if(v==='stats') renderStats();
 }
 function toggleForm(id){
-  const el = document.getElementById(id);
-  el.style.display = el.style.display==='none' ? 'block' : 'none';
+  const el=document.getElementById(id);
+  el.style.display = el.style.display==='none'?'block':'none';
+  if(el.style.display==='block') document.getElementById('s-studentid').value = nextStudentId();
 }
-function escapeHTML(s){
-  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function fillGroupDatalist(){
+  const groups = [...new Set(state.students.map(s=>s.group))].sort();
+  document.getElementById('groups-list').innerHTML = groups.map(g=>`<option value="${escapeHTML(g)}">`).join('');
+}
+function matchFilters(s, groupVal, courseVal){
+  return (!groupVal || s.group === groupVal) && (!courseVal || String(s.course) === String(courseVal));
+}
+function studentAvg(s){
+  const all = [];
+  Object.values(s.grades).forEach(byDate=>Object.values(byDate).forEach(g=>all.push(parseFloat(g)||0)));
+  return all.length ? (all.reduce((a,b)=>a+b,0)/all.length).toFixed(1) : null;
+}
+function attendancePct(s){
+  const vals = Object.values(s.attendance);
+  if(!vals.length) return null;
+  const present = vals.filter(v=>v==='present').length;
+  return Math.round(present/vals.length*100);
+}
+function nextStudentId(){
+  const nums = state.students.map(s=>parseInt(s.studentId,10)).filter(n=>!isNaN(n));
+  const next = nums.length ? Math.max.apply(null, nums)+1 : 1;
+  return String(next).padStart(3,'0');
 }
 
-/* ---------- charts (vanilla SVG) ---------- */
-function donut(data, size=104){
-  const total = data.reduce((s,d)=>s+d.value,0);
-  const r = size/2 - 10, cx=size/2, cy=size/2, circ = 2*Math.PI*r;
-  let offset = 0, arcs = '';
-  if(total <= 0){
-    arcs = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#284A3F" stroke-width="14"/>`;
-  } else {
-    data.forEach(d=>{
-      if(d.value<=0) return;
-      const frac = d.value/total, len = frac*circ;
-      arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="14"
-        stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-offset}" stroke-linecap="butt" transform="rotate(-90 ${cx} ${cy})"/>`;
-      offset += len;
+/* ========== 1. CLASS JOURNAL ========== */
+const MARKS = ['', 'present', 'absent', 'late'];
+const MARK_SYM = {'present':'✓','absent':'✗','late':'⏱'};
+let journalCache = {};
+let journalExtraDays = new Set();
+
+function journalStudents(){
+  const g = document.getElementById('j-group').value.trim();
+  const c = document.getElementById('j-course').value;
+  return state.students.filter(s=>matchFilters(s,g,c)).sort(byName);
+}
+function journalDates(){
+  const set = new Set(journalExtraDays);
+  journalStudents().forEach(s=>Object.keys(s.attendance).forEach(d=>set.add(d)));
+  return [...set].sort();
+}
+function renderJournal(){
+  fillGroupDatalist();
+  const students = journalStudents();
+  const dates = journalDates();
+  journalCache = {};
+  students.forEach(s=>{ journalCache[s.id] = Object.assign({}, s.attendance); });
+
+  document.getElementById('headerSubtitle').textContent =
+    (document.getElementById('j-group').value.trim() || 'Все группы') +
+    (document.getElementById('j-course').value ? ' · ' + document.getElementById('j-course').value + ' курс' : '');
+
+  const wrap = document.getElementById('j-table');
+  if(!students.length){ wrap.innerHTML = '<div class="empty">Студентов не найдено. Добавьте их во вкладке «Студенты».</div>'; renderQuick(); return; }
+
+  let html = '<div class="journal-wrap"><table class="journal"><thead><tr><th class="j-name-col">Студент</th>';
+  dates.forEach(d=>{
+    const presentCnt = students.filter(s=>s.attendance[d]==='present').length;
+    html += `<th>${fmtDate(d)}<span class="j-dow">${weekday(d)}</span><span class="j-count">${presentCnt||''}</span></th>`;
+  });
+  html += '<th>%</th></tr></thead><tbody>';
+
+  students.forEach(s=>{
+    html += `<tr><td class="j-name" onclick="openStudent(${s.id})">${escapeHTML(s.name)}</td>`;
+    dates.forEach(d=>{
+      const st = journalCache[s.id][d] || '';
+      html += `<td><button class="j-cell ${st?'mark-'+st:''}" onclick="cycleCell(${s.id},'${d}')">${MARK_SYM[st]||'·'}</button></td>`;
     });
-  }
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${arcs}
-    <text x="${cx}" y="${cy+5}" text-anchor="middle" fill="#EDF3F0" font-size="15" font-weight="700" font-family="inherit">${total>0? total.toLocaleString('ru-RU'):'—'}</text>
-  </svg>`;
+    const pct = attendancePct(s);
+    html += `<td class="j-pct">${pct===null?'—':pct+'%'}</td></tr>`;
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+  renderQuick();
 }
-function legendHTML(data){
-  const total = data.reduce((s,d)=>s+d.value,0);
-  return data.map(d=>{
-    const pct = total>0 ? Math.round(d.value/total*100) : 0;
-    return `<div class="legend-item"><span class="legend-dot" style="background:${d.color}"></span>${escapeHTML(d.label)}<span class="legend-val">${pct}%</span></div>`;
-  }).join('');
+function cycleCell(sid, d){
+  const cur = journalCache[sid][d] || '';
+  const next = MARKS[(MARKS.indexOf(cur)+1) % MARKS.length];
+  if(next) journalCache[sid][d] = next; else delete journalCache[sid][d];
+  renderJournalKeepScroll();
 }
-
-/* ================= TASKS ================= */
-const PRIO_CLASS = {'Высокий':'high','Средний':'med','Низкий':'low'};
-const PRIO_ORDER = {'Высокий':0,'Средний':1,'Низкий':2};
-const RECUR_LABEL = {daily:'каждый день', weekly:'каждую неделю', monthly:'каждый месяц'};
-let editingTaskId = null;
-let expandedTasks = new Set();
-
-function fillTaskCategoryFilter(){
-  const sel = document.getElementById('t-filter-cat');
-  const cur = sel.value;
-  const cats = [...new Set(state.tasks.map(t=>t.cat))].sort();
-  sel.innerHTML = '<option value="">Все категории</option>' + cats.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
-  sel.value = cats.includes(cur) ? cur : '';
+function renderJournalKeepScroll(){
+  const el = document.querySelector('.journal-wrap');
+  const sl = el ? el.scrollLeft : 0;
+  renderJournal();
+  const el2 = document.querySelector('.journal-wrap');
+  if(el2) el2.scrollLeft = sl;
 }
-
-function submitTask(){
-  const text = document.getElementById('t-input-text').value.trim();
-  if(!text) return;
-  const cat = document.getElementById('t-input-cat').value.trim() || 'Общее';
-  const prio = document.getElementById('t-input-prio').value;
-  const due = document.getElementById('t-input-due').value;
-  const recurVal = document.getElementById('t-input-recur').value;
-  const recur = recurVal ? {freq:recurVal} : null;
-
-  if(editingTaskId){
-    const t = state.tasks.find(x=>x.id===editingTaskId);
-    Object.assign(t, {text, cat, prio, due, recur});
-    editingTaskId = null;
-    document.getElementById('t-submit-btn').textContent = 'Добавить';
-  } else {
-    state.tasks.push({id:Date.now(), text, cat, prio, due, status:'todo', subtasks:[], recur});
-  }
-  document.getElementById('t-input-text').value='';
-  document.getElementById('t-input-cat').value='';
-  document.getElementById('t-input-due').value='';
-  document.getElementById('t-input-recur').value='';
-  document.getElementById('t-form').style.display='none';
-  save(); renderTasks();
+function addJournalDay(v){
+  if(!v) return;
+  journalExtraDays.add(v);
+  document.getElementById('j-add-day').value = '';
+  renderJournal();
 }
-function editTask(id){
-  const t = state.tasks.find(x=>x.id===id);
-  if(!t) return;
-  editingTaskId = id;
-  document.getElementById('t-input-text').value = t.text;
-  document.getElementById('t-input-cat').value = t.cat;
-  document.getElementById('t-input-prio').value = t.prio;
-  document.getElementById('t-input-due').value = t.due;
-  document.getElementById('t-input-recur').value = t.recur ? t.recur.freq : '';
-  document.getElementById('t-submit-btn').textContent = 'Сохранить';
-  document.getElementById('t-form').style.display='block';
-  document.getElementById('t-form').scrollIntoView({behavior:'smooth', block:'center'});
-}
-function cycleStatus(id){
-  const t = state.tasks.find(x=>x.id===id);
-  const wasNotDone = t.status !== 'done';
-  t.status = t.status==='todo' ? 'progress' : t.status==='progress' ? 'done' : 'todo';
-  if(t.status==='done' && t.recur && wasNotDone){
-    const base = t.due || todayISO();
-    let nextDue = base;
-    if(t.recur.freq==='daily') nextDue = addDays(base, 1);
-    else if(t.recur.freq==='weekly') nextDue = addDays(base, 7);
-    else if(t.recur.freq==='monthly') nextDue = addMonthsIso(base, 1);
-    t.due = nextDue;
-    t.status = 'todo';
-  }
-  save(); renderTasks();
-}
-function delTask(id){ state.tasks = state.tasks.filter(x=>x.id!==id); save(); renderTasks(); }
-function toggleExpand(id){
-  if(expandedTasks.has(id)) expandedTasks.delete(id); else expandedTasks.add(id);
-  renderTasks();
-}
-function addSubtask(taskId){
-  const inp = document.getElementById('sub-inp-'+taskId);
-  const text = inp.value.trim();
-  if(!text) return;
-  const t = state.tasks.find(x=>x.id===taskId);
-  t.subtasks.push({id:Date.now(), text, done:false});
-  inp.value='';
-  save(); renderTasks();
-}
-function toggleSubtask(taskId, subId){
-  const t = state.tasks.find(x=>x.id===taskId);
-  const s = t.subtasks.find(x=>x.id===subId);
-  s.done = !s.done;
-  save(); renderTasks();
-}
-function delSubtask(taskId, subId){
-  const t = state.tasks.find(x=>x.id===taskId);
-  t.subtasks = t.subtasks.filter(x=>x.id!==subId);
-  save(); renderTasks();
+function saveJournal(){
+  journalStudents().forEach(s=>{
+    s.attendance = Object.assign({}, journalCache[s.id]);
+  });
+  journalExtraDays = new Set([...journalExtraDays].filter(d=>{
+    return journalStudents().some(s=>s.attendance[d]);
+  }));
+  save(); renderJournal();
+  alert('Журнал сохранён ✅');
 }
 
-function filteredSortedTasks(){
-  let arr = [...state.tasks];
-  const q = (document.getElementById('t-search').value||'').toLowerCase().trim();
-  const catF = document.getElementById('t-filter-cat').value;
-  const sortMode = document.getElementById('t-sort').value;
-  if(q) arr = arr.filter(t=> t.text.toLowerCase().includes(q) || t.cat.toLowerCase().includes(q));
-  if(catF) arr = arr.filter(t=>t.cat===catF);
-  if(sortMode==='prio') arr.sort((a,b)=>PRIO_ORDER[a.prio]-PRIO_ORDER[b.prio]);
-  else if(sortMode==='due') arr.sort((a,b)=>(a.due||'9999-99-99').localeCompare(b.due||'9999-99-99'));
-  return arr;
-}
-
-function renderTasks(){
-  fillTaskCategoryFilter();
-  const total = state.tasks.length;
-  const done = state.tasks.filter(t=>t.status==='done').length;
-  const progress = state.tasks.filter(t=>t.status==='progress').length;
-  const todo = total-done-progress;
-  document.getElementById('t-total').textContent = total;
-  document.getElementById('t-done').textContent = done;
-  document.getElementById('t-pct').textContent = total? Math.round(done/total*100)+'%' : '0%';
-
-  const data = [
-    {label:'Готово', value:done, color:'#5FD3BC'},
-    {label:'В процессе', value:progress, color:'#F2B705'},
-    {label:'Не начато', value:todo, color:'#E4572E'},
-  ];
-  document.getElementById('t-donut').innerHTML = donut(data);
-  document.getElementById('t-legend').innerHTML = legendHTML(data);
-
-  const list = document.getElementById('t-list');
-  const items = filteredSortedTasks();
-  if(!items.length){ list.innerHTML = '<div class="empty">Ничего не найдено — измени фильтр или добавь задачу</div>'; return; }
+/* --- quick mark for today --- */
+function renderQuick(){
+  const students = journalStudents();
   const today = todayISO();
-  list.innerHTML = items.map(t=>{
-    const chkClass = t.status==='done'?'done':t.status==='progress'?'mid':'';
-    const chkMark = t.status==='done'?'✓':t.status==='progress'?'…':'';
-    const overdue = t.due && t.due < today && t.status!=='done';
-    const subDone = t.subtasks.filter(s=>s.done).length;
-    const expanded = expandedTasks.has(t.id);
-    const subtasksHTML = expanded ? `
-      <div class="subtasks">
-        ${t.subtasks.map(s=>`
-          <div class="subtask-row">
-            <div class="chk ${s.done?'done':''}" style="width:20px;height:20px;min-width:20px;font-size:11px;" onclick="toggleSubtask(${t.id},${s.id})">${s.done?'✓':''}</div>
-            <div class="stxt ${s.done?'strike':''}">${escapeHTML(s.text)}</div>
-            <div class="icon-btn" onclick="delSubtask(${t.id},${s.id})">✕</div>
-          </div>`).join('')}
-        <div class="sub-add">
-          <input id="sub-inp-${t.id}" placeholder="Новый пункт..." onkeydown="if(event.key==='Enter')addSubtask(${t.id})">
-          <button onclick="addSubtask(${t.id})">+</button>
-        </div>
-      </div>` : '';
-    return `<div class="item" style="align-items:flex-start;">
-      <div class="chk ${chkClass}" onclick="cycleStatus(${t.id})">${chkMark}</div>
-      <div class="body">
-        <div class="title ${t.status==='done'?'strike':''}" onclick="${t.subtasks.length? `toggleExpand(${t.id})`:''}">${escapeHTML(t.text)}</div>
-        <div class="meta">
-          <span class="tag ${PRIO_CLASS[t.prio]||''}">${t.prio}</span>
-          <span class="tag">${escapeHTML(t.cat)}</span>
-          ${t.due? `<span class="tag ${overdue?'overdue':''}">${overdue?'просрочено ':'до '}${t.due}</span>`:''}
-          ${t.recur? `<span class="tag recur">↻ ${RECUR_LABEL[t.recur.freq]}</span>`:''}
-        </div>
-        ${t.subtasks.length? `<div class="subtask-toggle" onclick="toggleExpand(${t.id})">${subDone}/${t.subtasks.length} подзадач ${expanded?'▲':'▼'}</div>`:''}
-        ${subtasksHTML}
+  const el = document.getElementById('j-quick');
+  if(!students.length){ el.innerHTML = '<div class="empty">Нет студентов</div>'; return; }
+  el.innerHTML = students.map(s=>{
+    const st = (journalCache[s.id] || {})[today] || '';
+    return `<div class="attendance-row">
+      <div class="att-name">${escapeHTML(s.name)} <span style="color:var(--muted); font-size:11px;">${escapeHTML(s.group)}</span></div>
+      <div class="att-control">
+        <button class="att-btn att-present ${st==='present'?'active':''}" onclick="quickSet(${s.id},'present')">✓</button>
+        <button class="att-btn att-absent ${st==='absent'?'active':''}" onclick="quickSet(${s.id},'absent')">✗</button>
+        <button class="att-btn att-late ${st==='late'?'active':''}" onclick="quickSet(${s.id},'late')">⏱</button>
       </div>
-      <div class="row-actions">
-        <div class="icon-btn edit" onclick="editTask(${t.id})">✎</div>
-        <div class="icon-btn" onclick="delTask(${t.id})">✕</div>
+    </div>`;
+  }).join('') + `<button class="primary" style="margin-top:10px;" onclick="saveJournal()">Сохранить и в журнал</button>`;
+}
+function quickSet(sid, status){
+  const cur = (journalCache[sid]||{})[todayISO()];
+  if(cur === status) delete journalCache[sid][todayISO()];
+  else journalCache[sid][todayISO()] = status;
+  renderJournalKeepScroll();
+}
+
+/* ========== 2. STUDENTS ========== */
+function addStudent(){
+  const name = document.getElementById('s-name').value.trim();
+  const sid = document.getElementById('s-studentid').value.trim() || nextStudentId();
+  const grp = document.getElementById('s-group').value.trim() || 'Без группы';
+  const course = parseInt(document.getElementById('s-course').value) || 1;
+  if(!name){ alert('Укажите имя студента'); return; }
+  state.students.push({id:Date.now(), name, studentId:sid, group:grp, course, attendance:{}, grades:{}});
+  document.getElementById('s-name').value='';
+  document.getElementById('s-group').value='';
+  document.getElementById('s-form').style.display='none';
+  save(); renderStudents();
+}
+function delStudent(id){
+  if(!confirm('Удалить студента?')) return;
+  state.students = state.students.filter(s=>s.id!==id);
+  save(); renderStudents();
+}
+function renderStudents(){
+  fillGroupDatalist();
+  const q = (document.getElementById('s-search').value||'').toLowerCase().trim();
+  const grpF = document.getElementById('s-group-filter').value.trim();
+  const courseF = document.getElementById('s-course-filter').value;
+  let arr = state.students.filter(s=>matchFilters(s, grpF, courseF));
+  if(q) arr = arr.filter(s=> s.name.toLowerCase().includes(q) || s.studentId.toLowerCase().includes(q));
+  arr = arr.slice().sort(byName);
+
+  document.getElementById('dayCounter').textContent = `Студентов: ${state.students.length}`;
+  const list = document.getElementById('s-list');
+  if(!arr.length){ list.innerHTML = '<div class="empty">Студентов не найдено</div>'; return; }
+
+  list.innerHTML = arr.map(s=>{
+    const attDates = Object.keys(s.attendance);
+    const present = attDates.filter(d=>s.attendance[d]==='present').length;
+    const absent = attDates.filter(d=>s.attendance[d]==='absent').length;
+    const late = attDates.filter(d=>s.attendance[d]==='late').length;
+    const avg = studentAvg(s);
+    return `<div class="student-row" onclick="openStudent(${s.id})">
+      <div class="student-name">
+        <div>${escapeHTML(s.name)} <span style="color:var(--muted); font-weight:400; font-size:12px;">ID ${escapeHTML(s.studentId)}</span></div>
+        <button class="icon-btn danger" onclick="event.stopPropagation(); delStudent(${s.id})">✕</button>
+      </div>
+      <div style="font-size:11px; color:var(--primary); margin-bottom:6px; font-weight:600;">${s.course} курс · ${escapeHTML(s.group)}</div>
+      <div class="student-stats">
+        <div class="stat-item"><span class="stat-val">${attDates.length}</span><span>дней</span></div>
+        <div class="stat-item"><span class="stat-val" style="color:var(--success);">${present}</span><span>присут.</span></div>
+        <div class="stat-item"><span class="stat-val" style="color:var(--danger);">${absent}</span><span>отсут.</span></div>
+        <div class="stat-item"><span class="stat-val" style="color:var(--warning);">${late}</span><span>опозд.</span></div>
+        <div class="stat-item"><span class="stat-val">${avg ?? '—'}</span><span>средн. балл</span></div>
       </div>
     </div>`;
   }).join('');
 }
 
-/* ================= HABITS ================= */
-let habitViewDate = new Date();
+/* ========== STUDENT MODAL ========== */
+function openStudent(id){
+  const s = state.students.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('m-name').textContent = s.name;
+  document.getElementById('m-sub').textContent = `ID ${s.studentId} · ${s.course} курс · ${s.group}`;
+  const pct = attendancePct(s);
+  const vals = Object.values(s.attendance);
+  const pr = vals.filter(v=>v==='present').length, ab = vals.filter(v=>v==='absent').length, la = vals.filter(v=>v==='late').length;
+  document.getElementById('m-attendance').innerHTML = `
+    <div class="m-line"><span>Всего занятий</span><b>${vals.length}</b></div>
+    <div class="m-line"><span>Присутствовал</span><b style="color:var(--success)">${pr}</b></div>
+    <div class="m-line"><span>Отсутствовал</span><b style="color:var(--danger)">${ab}</b></div>
+    <div class="m-line"><span>Опозданий</span><b style="color:var(--warning)">${la}</b></div>
+    <div class="m-line"><span>Процент посещаемости</span><b>${pct===null?'—':pct+'%'}</b></div>`;
 
-function shiftHabitMonth(n){
-  habitViewDate.setMonth(habitViewDate.getMonth()+n);
-  renderHabits();
+  const gRows = [];
+  Object.entries(s.grades).forEach(([subj, byDate])=>{
+    Object.entries(byDate).forEach(([d,g])=> gRows.push({subj, d, g}));
+  });
+  gRows.sort((a,b)=>b.d.localeCompare(a.d));
+  document.getElementById('m-grades').innerHTML = gRows.length
+    ? gRows.slice(0,15).map(r=>`<div class="m-line"><span>${escapeHTML(r.subj)} <span style="color:var(--muted); font-size:11px;">${fmtDate(r.d)}</span></span><b>${escapeHTML(r.g)}</b></div>`).join('')
+    : '<div class="empty">Оценок пока нет</div>';
+  document.getElementById('modalBack').classList.add('open');
 }
-function monthMatrix(year, month){
-  const first = new Date(year, month, 1);
-  const startDow = (first.getDay()+6)%7;
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const cells = [];
-  for(let i=0;i<startDow;i++) cells.push(null);
-  for(let d=1; d<=daysInMonth; d++) cells.push(`${year}-${pad(month+1)}-${pad(d)}`);
-  return cells;
+function closeModal(){ document.getElementById('modalBack').classList.remove('open'); }
+
+/* ========== 3. GRADES ========== */
+let gradesCache = {};
+function allSubjects(){
+  const set = new Set();
+  state.students.forEach(s=>Object.keys(s.grades).forEach(subj=>set.add(subj)));
+  return [...set].sort();
 }
-function addHabit(){
-  const name = document.getElementById('h-input-name').value.trim();
-  if(!name) return;
-  state.habits.push({id:Date.now(), name, dates:[], notes:{}, goal:5});
-  document.getElementById('h-input-name').value='';
-  save(); renderHabits();
+function gradeStudents(){
+  const g = document.getElementById('g-group').value.trim();
+  const c = document.getElementById('g-course').value;
+  return state.students.filter(s=>matchFilters(s,g,c)).sort(byName);
 }
-function delHabit(id){ state.habits = state.habits.filter(h=>h.id!==id); save(); renderHabits(); }
-function toggleHabitDay(id, iso){
-  const h = state.habits.find(x=>x.id===id);
-  const i = h.dates.indexOf(iso);
-  if(i>=0) h.dates.splice(i,1); else h.dates.push(iso);
-  save(); renderHabits();
-}
-function setHabitGoal(id, val){
-  const h = state.habits.find(x=>x.id===id);
-  h.goal = Math.max(1, Math.min(7, parseInt(val)||1));
-  save(); renderHabits();
-}
-let expandedNotes = new Set();
-function toggleNotes(id){
-  if(expandedNotes.has(id)) expandedNotes.delete(id); else expandedNotes.add(id);
-  renderHabits();
-}
-function addNote(habitId){
-  const dateInp = document.getElementById('note-date-'+habitId);
-  const textInp = document.getElementById('note-text-'+habitId);
-  const date = dateInp.value || todayISO();
-  const text = textInp.value.trim();
-  if(!text) return;
-  const h = state.habits.find(x=>x.id===habitId);
-  h.notes[date] = text;
-  textInp.value = '';
-  save(); renderHabits();
-}
-function delNote(habitId, date){
-  const h = state.habits.find(x=>x.id===habitId);
-  delete h.notes[date];
-  save(); renderHabits();
-}
+function renderGrades(){
+  document.getElementById('g-date').value = document.getElementById('g-date').value || todayISO();
+  document.getElementById('g-subjects').innerHTML = allSubjects().map(s=>`<option value="${escapeHTML(s)}">`).join('');
+  const date = document.getElementById('g-date').value;
+  const subject = document.getElementById('g-subject').value.trim();
+  const students = gradeStudents();
+  gradesCache = {};
 
-function weekRangeOf(date){
-  const d = new Date(date);
-  const dow = (d.getDay()+6)%7;
-  const monday = new Date(d); monday.setDate(d.getDate()-dow);
-  const days = [];
-  for(let i=0;i<7;i++){ const dd = new Date(monday); dd.setDate(monday.getDate()+i); days.push(isoLocal(dd)); }
-  return days;
-}
-function calcStreaks(h){
-  const set = new Set(h.dates);
-  let current = 0;
-  let cursor = new Date();
-  if(!set.has(isoLocal(cursor))) cursor.setDate(cursor.getDate()-1);
-  while(set.has(isoLocal(cursor))){ current++; cursor.setDate(cursor.getDate()-1); }
-  const sorted = [...set].sort();
-  let best=0, run=0, prev=null;
-  for(const ds of sorted){
-    if(prev){
-      const diff = Math.round((new Date(ds) - new Date(prev))/86400000);
-      run = diff===1 ? run+1 : 1;
-    } else run = 1;
-    best = Math.max(best, run);
-    prev = ds;
-  }
-  return {current, best};
-}
+  const list = document.getElementById('g-list');
+  if(!students.length){ list.innerHTML = '<div class="empty">Студентов не найдено</div>'; return; }
 
-const DOW_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-
-function renderHabits(){
-  document.getElementById('h-month-label').textContent = monthLabel(habitViewDate);
-  const y = habitViewDate.getFullYear(), m = habitViewDate.getMonth();
-  const cells = monthMatrix(y, m);
-  const today = todayISO();
-
-  const overviewCal = document.getElementById('h-overview-cal');
-  overviewCal.innerHTML = DOW_LABELS.map(l=>`<div class="cal-dow">${l}</div>`).join('') +
-    cells.map(iso=>{
-      if(!iso) return '<div class="cal-cell empty2"></div>';
-      const cnt = state.habits.filter(h=>h.dates.includes(iso)).length;
-      const totalH = state.habits.length;
-      const ratio = totalH? cnt/totalH : 0;
-      let heat = '';
-      if(ratio>0 && ratio<0.4) heat='heat1'; else if(ratio>=0.4 && ratio<0.8) heat='heat2'; else if(ratio>=0.8) heat='heat3';
-      const isToday = iso===today ? 'today-ring' : '';
-      return `<div class="cal-cell ${heat} ${isToday}">${parseInt(iso.slice(-2))}</div>`;
-    }).join('');
-
-  const list = document.getElementById('h-list');
-  if(!state.habits.length){ list.innerHTML = '<div class="empty">Пока нет привычек — добавь первую</div>'; return; }
-  const weekDays = weekRangeOf(new Date());
-
-  list.innerHTML = state.habits.map(h=>{
-    const streaks = calcStreaks(h);
-    const weekCount = h.dates.filter(d=>weekDays.includes(d)).length;
-    const goalPct = Math.min(100, Math.round(weekCount/h.goal*100));
-    const notesOpen = expandedNotes.has(h.id);
-    const notesEntries = Object.entries(h.notes).sort((a,b)=>b[0].localeCompare(a[0]));
-
-    const calHTML = DOW_LABELS.map(l=>`<div class="cal-dow">${l}</div>`).join('') +
-      cells.map(iso=>{
-        if(!iso) return '<div class="cal-cell empty2"></div>';
-        const on = h.dates.includes(iso) ? 'on' : '';
-        const isToday = iso===today ? 'today-ring' : '';
-        const hasNote = h.notes[iso] ? '<div class="note-dot"></div>' : '';
-        return `<div class="cal-cell ${on} ${isToday}" onclick="toggleHabitDay(${h.id},'${iso}')">${parseInt(iso.slice(-2))}${hasNote}</div>`;
-      }).join('');
-
-    return `<div class="habit-row">
-      <div class="habit-top">
-        <div>
-          <div class="habit-name">${escapeHTML(h.name)}</div>
-          <div class="habit-streak">🔥 сейчас: ${streaks.current} дн. · рекорд: ${streaks.best} дн.</div>
-        </div>
-        <div class="icon-btn" onclick="delHabit(${h.id})">✕</div>
-      </div>
-
-      <div class="goal-row">
-        <span style="font-size:11px; color:var(--muted); white-space:nowrap;">Цель/нед.</span>
-        <input type="number" min="1" max="7" value="${h.goal}" onchange="setHabitGoal(${h.id}, this.value)">
-        <div class="goal-bar-wrap">
-          <div class="bar-track"><div class="bar-fill ${weekCount>=h.goal?'':''}" style="width:${goalPct}%"></div></div>
-        </div>
-        <span style="font-size:11px; color:var(--muted); white-space:nowrap;">${weekCount}/${h.goal}</span>
-      </div>
-
-      <div class="habit-cal cal-grid">${calHTML}</div>
-
-      <div class="notes-toggle" onclick="toggleNotes(${h.id})">📝 Заметки (${notesEntries.length}) ${notesOpen?'▲':'▼'}</div>
-      ${notesOpen ? `
-        <div class="notes-panel">
-          <div class="two-col" style="margin-bottom:8px;">
-            <input type="date" id="note-date-${h.id}" value="${today}">
-            <input type="text" id="note-text-${h.id}" placeholder="Заметка...">
-          </div>
-          <button class="ghost" onclick="addNote(${h.id})">Сохранить заметку</button>
-          ${notesEntries.length? `<div style="margin-top:10px;">${notesEntries.map(([d,txt])=>`
-            <div class="note-item"><span class="nd">${d}</span><span style="flex:1;">${escapeHTML(txt)}</span><span class="icon-btn" onclick="delNote(${h.id},'${d}')">✕</span></div>
-          `).join('')}</div>` : ''}
-        </div>` : ''}
+  list.innerHTML = students.map(s=>{
+    const grade = (subject && s.grades[subject] && s.grades[subject][date]) || '';
+    gradesCache[s.id] = grade;
+    return `<div class="grade-row">
+      <div class="grade-name">${escapeHTML(s.name)} <span style="color:var(--muted); font-size:11px;">${s.course} курс · ${escapeHTML(s.group)}</span></div>
+      <input type="text" inputmode="decimal" class="grade-input" value="${escapeHTML(grade)}" onchange="gradesCache[${s.id}] = this.value;">
     </div>`;
   }).join('');
 }
-
-/* ================= FINANCE ================= */
-const FIN_COLORS = ['#F2B705','#5FD3BC','#B79CED','#E4572E','#6FA8DC','#F29E4C'];
-let finViewDate = new Date();
-let editingTxId = null;
-
-function shiftFinMonth(n){
-  finViewDate.setMonth(finViewDate.getMonth()+n);
-  renderFin();
-}
-function txInView(){
-  const ym = isoMonthOf(finViewDate);
-  return state.tx.filter(t=>t.date.slice(0,7)===ym);
-}
-function submitTx(){
-  const date = document.getElementById('f-input-date').value || todayISO();
-  const type = document.getElementById('f-input-type').value;
-  const cat = document.getElementById('f-input-cat').value.trim() || 'Прочее';
-  const amt = parseFloat(document.getElementById('f-input-amt').value);
-  if(!amt || amt<=0) return;
-  const note = document.getElementById('f-input-note').value.trim();
-
-  if(editingTxId){
-    const t = state.tx.find(x=>x.id===editingTxId);
-    Object.assign(t, {date, type, cat, amt, note});
-    editingTxId = null;
-    document.getElementById('f-submit-btn').textContent = 'Добавить';
-  } else {
-    state.tx.push({id:Date.now(), date, type, cat, amt, note});
+function saveGrades(){
+  const subject = document.getElementById('g-subject').value.trim();
+  const date = document.getElementById('g-date').value || todayISO();
+  if(!subject){ alert('Укажите предмет'); return; }
+  for(const [sId, grade] of Object.entries(gradesCache)){
+    const s = state.students.find(x=>x.id===parseInt(sId));
+    if(s && grade !== ''){
+      if(!s.grades[subject]) s.grades[subject] = {};
+      s.grades[subject][date] = grade;
+    }
   }
-  document.getElementById('f-input-cat').value='';
-  document.getElementById('f-input-amt').value='';
-  document.getElementById('f-input-note').value='';
-  document.getElementById('f-form').style.display='none';
-  save(); renderFin();
+  save(); renderGrades(); renderGradeHistory();
+  alert('Оценки сохранены ✅');
 }
-function editTx(id){
-  const t = state.tx.find(x=>x.id===id);
-  if(!t) return;
-  editingTxId = id;
-  document.getElementById('f-input-date').value = t.date;
-  document.getElementById('f-input-type').value = t.type;
-  document.getElementById('f-input-cat').value = t.cat;
-  document.getElementById('f-input-amt').value = t.amt;
-  document.getElementById('f-input-note').value = t.note||'';
-  document.getElementById('f-submit-btn').textContent = 'Сохранить';
-  document.getElementById('f-form').style.display='block';
-  document.getElementById('f-form').scrollIntoView({behavior:'smooth', block:'center'});
+function renderGradeHistory(){
+  const students = gradeStudents();
+  const entries = {};
+  students.forEach(s=>{
+    Object.entries(s.grades).forEach(([subj, byDate])=>{
+      Object.entries(byDate).forEach(([d,g])=>{
+        const k = `${subj}::${d}`;
+        if(!entries[k]) entries[k] = {subj, d, grades:[]};
+        entries[k].grades.push(parseFloat(g)||0);
+      });
+    });
+  });
+  const rows = Object.values(entries).sort((a,b)=>b.d.localeCompare(a.d)).slice(0,20);
+  document.getElementById('g-history').innerHTML = rows.length
+    ? rows.map(r=>{
+        const avg = (r.grades.reduce((a,b)=>a+b,0)/r.grades.length).toFixed(1);
+        return `<div class="m-line"><span>${escapeHTML(r.subj)} <span style="color:var(--muted); font-size:11px;">${fmtDate(r.d)}</span></span><b style="color:var(--primary)">${avg}</b></div>`;
+      }).join('')
+    : '<div class="empty">Истории пока нет</div>';
 }
-function delTx(id){ state.tx = state.tx.filter(x=>x.id!==id); save(); renderFin(); }
 
-function addBudget(){
-  const cat = document.getElementById('b-input-cat').value.trim();
-  const limit = parseFloat(document.getElementById('b-input-limit').value);
-  if(!cat || !limit || limit<=0) return;
-  state.budgets[cat] = limit;
-  document.getElementById('b-input-cat').value='';
-  document.getElementById('b-input-limit').value='';
-  save(); renderFin();
+/* ========== 4. STATISTICS ========== */
+function statStudents(){
+  const g = document.getElementById('st-group').value.trim();
+  const c = document.getElementById('st-course').value;
+  return state.students.filter(s=>matchFilters(s,g,c));
 }
-function updateBudget(cat, val){
-  const limit = parseFloat(val);
-  if(limit>0) state.budgets[cat] = limit; else delete state.budgets[cat];
-  save(); renderFin();
-}
-function delBudget(cat){ delete state.budgets[cat]; save(); renderFin(); }
+function renderStats(){
+  fillGroupDatalist();
+  const students = statStudents();
 
-function addPiggybank(){
-  const name = document.getElementById('pb-input-name').value.trim();
-  const goal = parseFloat(document.getElementById('pb-input-goal').value);
-  if(!name || !goal || goal<=0) return;
-  state.piggybanks.push({id:Date.now(), name, goal, saved:0});
-  document.getElementById('pb-input-name').value='';
-  document.getElementById('pb-input-goal').value='';
-  save(); renderFin();
-}
-function updatePiggybank(id, amount){
-  const pb = state.piggybanks.find(x=>x.id===id);
-  if(!pb) return;
-  pb.saved = Math.max(0, pb.saved + amount);
-  save(); renderFin();
-}
-function delPiggybank(id){
-  state.piggybanks = state.piggybanks.filter(x=>x.id!==id);
-  save(); renderFin();
-}
-function renderPiggybanks(){
-  const pbEl = document.getElementById('f-piggybanks');
-  if(!state.piggybanks.length){
-    pbEl.innerHTML = '<div class="empty" style="padding:6px 0;">Пока нет копилок — добавь первую</div>';
+  if(!students.length){
+    document.getElementById('st-overview').innerHTML = '<div class="empty">Студентов не найдено</div>';
+    document.getElementById('st-top-attendance').innerHTML = '<div class="empty">Нет данных</div>';
+    document.getElementById('st-risk').innerHTML = '<div class="empty">Нет данных</div>';
+    document.getElementById('st-avg-grades').innerHTML = '<div class="empty">Нет данных</div>';
     return;
   }
-  pbEl.innerHTML = state.piggybanks.map(pb=>{
-    const pct = Math.min(100, Math.round(pb.saved/Math.max(1, pb.goal)*100));
-    const left = Math.max(0, pb.goal - pb.saved);
-    return `<div class="pb-row">
-      <div class="pb-header">
-        <div class="name">${escapeHTML(pb.name)}</div>
-        <div class="progress">${pb.saved.toLocaleString('ru-RU')} / ${pb.goal.toLocaleString('ru-RU')}</div>
-      </div>
-      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-      <div class="pb-progress">
-        <span style="color:var(--muted);">${pct}%</span>
-        <span style="flex:1; text-align:right; color:var(--muted);">осталось: ${left.toLocaleString('ru-RU')}</span>
-      </div>
-      <div class="pb-actions">
-        <input type="number" id="pb-add-${pb.id}" placeholder="Сумма" inputmode="decimal">
-        <button onclick="updatePiggybank(${pb.id}, parseFloat(document.getElementById('pb-add-${pb.id}').value)||0); document.getElementById('pb-add-${pb.id}').value='';">+</button>
-        <div class="icon-btn" onclick="delPiggybank(${pb.id})" style="padding:6px; color:var(--coral);">✕</div>
-      </div>
+
+  let totalPresent = 0, totalAbsent = 0, totalLate = 0, totalDays = 0;
+  students.forEach(s=>{
+    Object.values(s.attendance).forEach(status=>{
+      totalDays++;
+      if(status==='present') totalPresent++;
+      else if(status==='absent') totalAbsent++;
+      else if(status==='late') totalLate++;
+    });
+  });
+  const avgPresence = totalDays ? Math.round(totalPresent/totalDays*100) : 0;
+  document.getElementById('st-overview').innerHTML = `
+    <div style="display:flex; flex-wrap:wrap;">
+      <div class="stat-box"><div class="val">${students.length}</div><div class="lbl">студентов</div></div>
+      <div class="stat-box"><div class="val">${totalDays}</div><div class="lbl">всего дней</div></div>
+      <div class="stat-box"><div class="val" style="color:var(--success)">${totalPresent}</div><div class="lbl">присут.</div></div>
+      <div class="stat-box"><div class="val" style="color:var(--danger)">${totalAbsent}</div><div class="lbl">отсут.</div></div>
+      <div class="stat-box"><div class="val" style="color:var(--warning)">${totalLate}</div><div class="lbl">опозд.</div></div>
+      <div class="stat-box"><div class="val">${avgPresence}%</div><div class="lbl">посещаемость</div></div>
     </div>`;
-  }).join('');
+
+  const att = students.map(s=>{
+    const dates = Object.values(s.attendance);
+    const present = dates.filter(d=>d==='present').length;
+    const pct = dates.length ? Math.round(present/dates.length*100) : 0;
+    return {s, pct, present, total:dates.length};
+  }).sort((a,b)=> b.pct-a.pct || byName(a.s,b.s));
+
+  document.getElementById('st-top-attendance').innerHTML = att.slice(0, 5).map(a=>
+    `<div style="padding:8px; border-bottom:1px solid var(--line);" onclick="openStudent(${a.s.id})">
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <span style="font-weight:500;">${escapeHTML(a.s.name)} <span style="color:var(--muted); font-size:11px;">${a.s.course} курс</span></span>
+        <span style="color:var(--success); font-weight:700;">${a.total? a.pct+'%':'—'}</span>
+      </div>
+      <div style="height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden;">
+        <div style="height:100%; width:${a.pct}%; background:var(--success);"></div>
+      </div>
+    </div>`
+  ).join('') || '<div class="empty">Нет данных</div>';
+
+  /* at-risk students */
+  const risk = att.filter(a=>a.total>=3 && a.pct<60);
+  document.getElementById('st-risk').innerHTML = risk.length
+    ? risk.map(a=>`<div class="m-line" onclick="openStudent(${a.s.id})" style="cursor:pointer;">
+        <span>${escapeHTML(a.s.name)} <span style="color:var(--muted); font-size:11px;">${a.s.course} курс · ${escapeHTML(a.s.group)}</span></span>
+        <span class="badge r">⚠️ ${a.pct}%</span>
+      </div>`).join('')
+    : '<div class="empty" style="color:var(--success);">Рисковых студентов нет 🎉</div>';
+
+  /* average grade per subject */
+  const bySubj = {};
+  students.forEach(s=>{
+    Object.entries(s.grades).forEach(([subj, byDate])=>{
+      if(!bySubj[subj]) bySubj[subj] = [];
+      Object.values(byDate).forEach(g=>bySubj[subj].push(parseFloat(g)||0));
+    });
+  });
+  document.getElementById('st-avg-grades').innerHTML = Object.entries(bySubj).map(([subj, grades])=>{
+    const avg = (grades.reduce((a,b)=>a+b,0)/grades.length).toFixed(1);
+    const badge = avg>=4.5?'g':(avg>=3.5?'y':'r');
+    return `<div class="m-line"><span>${escapeHTML(subj)} <span style="color:var(--muted); font-size:11px;">(${grades.length} оц.)</span></span><span class="badge ${badge}">${avg}</span></div>`;
+  }).join('') || '<div class="empty">Нет данных об оценках</div>';
 }
 
-function renderFin(){
-  document.getElementById('f-month-label').textContent = monthLabel(finViewDate);
-  const monthTx = txInView();
-  const income = monthTx.filter(t=>t.type==='Доход').reduce((s,t)=>s+t.amt,0);
-  const expense = monthTx.filter(t=>t.type==='Расход').reduce((s,t)=>s+t.amt,0);
-  document.getElementById('f-income').textContent = income.toLocaleString('ru-RU');
-  document.getElementById('f-expense').textContent = expense.toLocaleString('ru-RU');
-  document.getElementById('f-balance').textContent = (income-expense).toLocaleString('ru-RU');
-
-  const byCat = {};
-  monthTx.filter(t=>t.type==='Расход').forEach(t=>{ byCat[t.cat] = (byCat[t.cat]||0)+t.amt; });
-  const catData = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([label,value],i)=>({label, value, color: FIN_COLORS[i%FIN_COLORS.length]}));
-  document.getElementById('f-donut').innerHTML = donut(catData);
-  document.getElementById('f-legend').innerHTML = catData.length ? legendHTML(catData) : '<div class="empty" style="padding:0">Нет расходов</div>';
-
-  const budgetCats = [...new Set([...Object.keys(state.budgets), ...Object.keys(byCat)])];
-  const budgetsEl = document.getElementById('f-budgets');
-  if(!budgetCats.length){
-    budgetsEl.innerHTML = '<div class="empty" style="padding:6px 0;">Пока нет лимитов</div>';
-  } else {
-    budgetsEl.innerHTML = budgetCats.map(cat=>{
-      const spent = byCat[cat]||0;
-      const limit = state.budgets[cat];
-      const pct = limit ? Math.min(100, Math.round(spent/limit*100)) : 0;
-      const over = limit && spent>limit;
-      return `<div class="budget-row">
-        <div class="budget-top">
-          <span class="name">${escapeHTML(cat)}</span>
-          <span class="amt">${spent.toLocaleString('ru-RU')} / <input type="number" value="${limit||''}" placeholder="—" onchange="updateBudget('${cat.replace(/'/g,"\\'")}', this.value)"></span>
-        </div>
-        ${limit? `<div class="bar-track"><div class="bar-fill ${over?'over':''}" style="width:${pct}%"></div></div>` : ''}
-      </div>`;
-    }).join('');
-  }
-
-  const list = document.getElementById('f-list');
-  if(!monthTx.length){ list.innerHTML = '<div class="empty">Нет операций в этом месяце</div>'; return; }
-  const sorted = [...monthTx].sort((a,b)=> b.date.localeCompare(a.date));
-  list.innerHTML = sorted.map(t=>`
-    <div class="item">
-      <div class="chk" style="border-color:${t.type==='Доход'?'#5FD3BC':'#E4572E'}; color:${t.type==='Доход'?'#5FD3BC':'#E4572E'}; font-size:16px;">${t.type==='Доход'?'+':'−'}</div>
-      <div class="body">
-        <div class="title">${escapeHTML(t.cat)} ${t.note?'· '+escapeHTML(t.note):''}</div>
-        <div class="meta"><span class="tag">${t.date}</span></div>
-      </div>
-      <div class="body" style="flex:none; text-align:right;">
-        <div class="title" style="color:${t.type==='Доход'?'#5FD3BC':'#E4572E'}">${t.type==='Доход'?'+':'−'}${t.amt.toLocaleString('ru-RU')}</div>
-      </div>
-      <div class="row-actions">
-        <div class="icon-btn edit" onclick="editTx(${t.id})">✎</div>
-        <div class="icon-btn" onclick="delTx(${t.id})">✕</div>
-      </div>
-    </div>`).join('');
-  
-  renderPiggybanks();
-}
-
-/* ================= BACKUP ================= */
+/* ========== EXPORT/IMPORT ========== */
 function exportData(){
   const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `poryadok-backup-${todayISO()}.json`;
+  a.download = `journal-${todayISO()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -975,34 +871,37 @@ function importData(evt){
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const parsed = JSON.parse(reader.result);
-      state = migrate(parsed);
+      state = JSON.parse(reader.result);
+      state.students.forEach(s=>{ s.attendance=s.attendance||{}; s.grades=s.grades||{}; if(!s.course) s.course=1; });
       save();
-      renderAll();
-      alert('Данные восстановлены');
+      renderStudents(); renderJournal();
+      alert('Данные загружены успешно');
     } catch(e){
-      alert('Не удалось прочитать файл — убедись, что это резервная копия из этого приложения');
+      alert('Ошибка при загрузке файла');
     }
   };
   reader.readAsText(file);
-  evt.target.value = '';
+  evt.target.value='';
 }
 function resetAll(){
-  if(!confirm('Точно удалить все данные без возможности восстановления?')) return;
-  state = migrate({});
+  if(!confirm('Удалить всё? Это необратимо!')) return;
+  state = {students:[]};
   save();
-  renderAll();
+  renderStudents(); renderJournal();
 }
 
-/* ---------- init ---------- */
-function renderAll(){
-  renderTasks();
-  renderHabits();
-  renderFin();
-}
-document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
-document.getElementById('f-input-date').value = todayISO();
-renderAll();
+/* ========== INIT (event bindings) ========== */
+document.getElementById('g-date').value = todayISO();
+document.getElementById('btnAddDay').addEventListener('click', function(){
+  document.getElementById('j-add-day').click();
+  document.getElementById('j-add-day').focus();
+});
+document.getElementById('btnToggleForm').addEventListener('click', function(){ toggleForm('s-form'); });
+document.getElementById('lockInput').addEventListener('keydown', function(e){ if(e.key==='Enter') tryUnlock(); });
+
+renderStudents();
+renderJournal();
+initLock();
 </script>
 </body>
 </html>
