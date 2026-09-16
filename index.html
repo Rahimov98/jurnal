@@ -198,7 +198,8 @@
       </div>
 
       <div class="card">
-        <h2>⚡ Быстрая отметка на сегодня</h2>
+        <h2>⚡ Быстрая отметка</h2>
+        <input type="date" id="j-quick-date" style="margin-bottom:10px;" onchange="renderQuick()">
         <div id="j-quick"></div>
       </div>
     </section>
@@ -531,15 +532,22 @@ function journalStudents(){
 }
 function journalDates(){
   const set = new Set(journalExtraDays);
-  journalStudents().forEach(s=>Object.keys(s.attendance).forEach(d=>set.add(d)));
+  journalStudents().forEach(s=>{
+    Object.keys(s.attendance || {}).forEach(d => set.add(d));
+    if (journalCache[s.id]) Object.keys(journalCache[s.id]).forEach(d => set.add(d));
+  });
   return [...set].sort();
 }
 function renderJournal(){
   fillGroupDatalist();
   const students = journalStudents();
+  // Keep pending changes in journalCache; only init from saved attendance for new students
+  students.forEach(s => {
+    if (!journalCache[s.id]) {
+      journalCache[s.id] = Object.assign({}, s.attendance || {});
+    }
+  });
   const dates = journalDates();
-  journalCache = {};
-  students.forEach(s=>{ journalCache[s.id] = Object.assign({}, s.attendance); });
 
   document.getElementById('headerSubtitle').textContent =
     (document.getElementById('j-group').value.trim() || 'Все группы') +
@@ -550,7 +558,7 @@ function renderJournal(){
 
   let html = '<div class="journal-wrap"><table class="journal"><thead><tr><th class="j-name-col">Студент</th>';
   dates.forEach(d=>{
-    const presentCnt = students.filter(s=>s.attendance[d]==='present').length;
+    const presentCnt = students.filter(s => (journalCache[s.id] || {})[d] === 'present').length;
     html += `<th>${fmtDate(d)}<span class="j-dow">${weekday(d)}</span><span class="j-count">${presentCnt||''}</span></th>`;
   });
   html += '<th>%</th></tr></thead><tbody>';
@@ -558,7 +566,7 @@ function renderJournal(){
   students.forEach(s=>{
     html += `<tr><td class="j-name" onclick="openStudent(${s.id})">${escapeHTML(s.name)}</td>`;
     dates.forEach(d=>{
-      const st = journalCache[s.id][d] || '';
+      const st = (journalCache[s.id] || {})[d] || '';
       html += `<td><button class="j-cell ${st?'mark-'+st:''}" onclick="cycleCell(${s.id},'${d}')">${MARK_SYM[st]||'·'}</button></td>`;
     });
     const pct = attendancePct(s);
@@ -598,14 +606,16 @@ function saveJournal(){
   alert('Журнал сохранён ✅');
 }
 
-/* --- quick mark for today --- */
+/* --- quick mark for any date --- */
 function renderQuick(){
   const students = journalStudents();
-  const today = todayISO();
+  const dateEl = document.getElementById('j-quick-date');
+  if (dateEl && !dateEl.value) dateEl.value = todayISO();
+  const d = (dateEl && dateEl.value) || todayISO();
   const el = document.getElementById('j-quick');
   if(!students.length){ el.innerHTML = '<div class="empty">Нет студентов</div>'; return; }
   el.innerHTML = students.map(s=>{
-    const st = (journalCache[s.id] || {})[today] || '';
+    const st = (journalCache[s.id] || {})[d] || '';
     return `<div class="attendance-row">
       <div class="att-name">${escapeHTML(s.name)} <span style="color:var(--muted); font-size:11px;">${escapeHTML(s.group)}</span></div>
       <div class="att-control">
@@ -617,9 +627,13 @@ function renderQuick(){
   }).join('') + `<button class="primary" style="margin-top:10px;" onclick="saveJournal()">Сохранить и в журнал</button>`;
 }
 function quickSet(sid, status){
-  const cur = (journalCache[sid]||{})[todayISO()];
-  if(cur === status) delete journalCache[sid][todayISO()];
-  else journalCache[sid][todayISO()] = status;
+  const dateEl = document.getElementById('j-quick-date');
+  const d = (dateEl && dateEl.value) || todayISO();
+  if (!journalCache[sid]) journalCache[sid] = {};
+  const cur = journalCache[sid][d];
+  if (cur === status) delete journalCache[sid][d];
+  else journalCache[sid][d] = status;
+  journalExtraDays.add(d);
   renderJournalKeepScroll();
 }
 
@@ -873,6 +887,8 @@ function importData(evt){
     try {
       state = JSON.parse(reader.result);
       state.students.forEach(s=>{ s.attendance=s.attendance||{}; s.grades=s.grades||{}; if(!s.course) s.course=1; });
+      journalCache = {};
+      journalExtraDays = new Set();
       save();
       renderStudents(); renderJournal();
       alert('Данные загружены успешно');
@@ -886,12 +902,16 @@ function importData(evt){
 function resetAll(){
   if(!confirm('Удалить всё? Это необратимо!')) return;
   state = {students:[]};
+  journalCache = {};
+  journalExtraDays = new Set();
   save();
   renderStudents(); renderJournal();
 }
 
 /* ========== INIT (event bindings) ========== */
 document.getElementById('g-date').value = todayISO();
+const quickDateEl = document.getElementById('j-quick-date');
+if (quickDateEl) quickDateEl.value = todayISO();
 document.getElementById('btnAddDay').addEventListener('click', function(){
   document.getElementById('j-add-day').click();
   document.getElementById('j-add-day').focus();
