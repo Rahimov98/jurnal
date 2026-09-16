@@ -52,11 +52,23 @@
     cursor:pointer; user-select:none;}
 
   .student-row{padding:12px; background:var(--surface-2); border-radius:10px; margin-bottom:8px;
-    border-left:3px solid var(--primary); cursor:pointer;}
+    border-left:4px solid var(--primary); cursor:pointer;}
+  .student-row.beh-good{border-left-color:var(--success);}
+  .student-row.beh-watch{border-left-color:var(--warning);}
+  .student-row.beh-bad{border-left-color:var(--danger);}
   .student-name{font-weight:600; font-size:14px; margin-bottom:6px; display:flex; justify-content:space-between;}
   .student-stats{font-size:11px; color:var(--muted); display:flex; gap:16px; flex-wrap:wrap;}
   .stat-item{display:flex; flex-direction:column;}
   .stat-val{font-weight:700; font-size:13px; color:var(--text);}
+  .beh-badge{display:inline-block; padding:2px 7px; border-radius:8px; font-size:10px; font-weight:700; margin-left:6px; vertical-align:middle;}
+  .beh-badge.good{background:rgba(39,174,96,.15); color:var(--success);}
+  .beh-badge.watch{background:rgba(243,156,18,.15); color:var(--warning);}
+  .beh-badge.bad{background:rgba(231,76,60,.15); color:var(--danger);}
+  .beh-dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; flex-shrink:0;}
+  .beh-dot.good{background:var(--success);}
+  .beh-dot.watch{background:var(--warning);}
+  .beh-dot.bad{background:var(--danger);}
+  .beh-dot.normal{background:var(--line);}
 
   .attendance-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line);}
   .attendance-row:last-child{border-bottom:none;}
@@ -299,6 +311,12 @@
             <input id="s-phone" type="tel" placeholder="Телефон">
             <input id="s-birth" type="date" placeholder="Дата рождения">
             <input id="s-address" placeholder="Адрес">
+            <select id="s-behavior">
+              <option value="">Характер: обычный</option>
+              <option value="good">🟢 Хороший</option>
+              <option value="watch">🟡 Требует внимания</option>
+              <option value="bad">🔴 Проблемный</option>
+            </select>
             <textarea id="s-notes" placeholder="Заметки (необязательно)" rows="2" style="resize:vertical;"></textarea>
             <button class="primary" id="s-submit-btn" onclick="saveStudent()">Добавить</button>
             <button class="ghost" id="s-cancel-btn" style="display:none; margin-top:6px;" onclick="cancelEditStudent()">Отмена</button>
@@ -499,6 +517,7 @@ state.students.forEach(s=>{
   if(s.birthDate === undefined) s.birthDate = '';
   if(s.notes === undefined) s.notes = '';
   if(s.photo === undefined) s.photo = '';
+  if(s.behavior === undefined) s.behavior = '';
   // migrate attendance string -> {status, comment}
   Object.keys(s.attendance).forEach(d=>{
     const v = s.attendance[d];
@@ -533,6 +552,17 @@ function getComment(att){
 function makeAtt(status, comment){
   if(!status) return null;
   return { status, comment: comment || '' };
+}
+const BEH_LABEL = { good: 'Хороший', watch: 'Внимание', bad: 'Проблемный' };
+const BEH_ICON = { good: '🟢', watch: '🟡', bad: '🔴' };
+function behClass(b){ return b === 'good' || b === 'watch' || b === 'bad' ? b : ''; }
+function behBadgeHtml(b){
+  if(!b || !BEH_LABEL[b]) return '';
+  return `<span class="beh-badge ${b}">${BEH_ICON[b]} ${BEH_LABEL[b]}</span>`;
+}
+function behDotHtml(b){
+  const c = behClass(b) || 'normal';
+  return `<span class="beh-dot ${c}" title="${BEH_LABEL[b] || 'Обычный'}"></span>`;
 }
 
 /* ========== PASSWORD / LOCK ========== */
@@ -624,6 +654,7 @@ function toggleForm(id){
       document.getElementById('s-phone').value = '';
       document.getElementById('s-birth').value = '';
       document.getElementById('s-address').value = '';
+      document.getElementById('s-behavior').value = '';
       document.getElementById('s-notes').value = '';
       document.getElementById('s-photo').value = '';
       const prev = document.getElementById('s-photo-preview');
@@ -644,6 +675,7 @@ function cancelEditStudent(){
   document.getElementById('s-phone').value = '';
   document.getElementById('s-birth').value = '';
   document.getElementById('s-address').value = '';
+  document.getElementById('s-behavior').value = '';
   document.getElementById('s-notes').value = '';
   document.getElementById('s-photo').value = '';
   const prev = document.getElementById('s-photo-preview');
@@ -746,7 +778,7 @@ function renderJournal(){
     const photoHtml = s.photo
       ? `<img class="avatar-sm" src="${s.photo}" alt="">`
       : `<span class="avatar-sm placeholder">👤</span>`;
-    html += `<tr><td class="j-num">${idx + 1}</td><td class="j-name" onclick="openStudent(${s.id})">${photoHtml}${escapeHTML(s.name)}</td>`;
+    html += `<tr><td class="j-num">${idx + 1}</td><td class="j-name" onclick="openStudent(${s.id})">${behDotHtml(s.behavior)}${photoHtml}${escapeHTML(s.name)}</td>`;
     dates.forEach(d=>{
       const att = (journalCache[s.id] || {})[d];
       const st = getStatus(att);
@@ -977,6 +1009,7 @@ function saveStudent(){
   const phone = document.getElementById('s-phone').value.trim();
   const birthDate = document.getElementById('s-birth').value;
   const address = document.getElementById('s-address').value.trim();
+  const behavior = document.getElementById('s-behavior').value;
   const notes = document.getElementById('s-notes').value.trim();
   const photoPrev = document.getElementById('s-photo-preview');
   let photo = '';
@@ -997,6 +1030,7 @@ function saveStudent(){
     s.phone = phone;
     s.birthDate = birthDate;
     s.address = address;
+    s.behavior = behavior;
     s.notes = notes;
     if(photo) s.photo = photo;
     cancelEditStudent();
@@ -1007,7 +1041,7 @@ function saveStudent(){
   } else {
     state.students.push({
       id: Date.now(), name, studentId: sid, group: grp, course,
-      phone, birthDate, address, notes, photo: photo || '',
+      phone, birthDate, address, behavior, notes, photo: photo || '',
       attendance: {}, grades: {}
     });
     cancelEditStudent();
@@ -1025,6 +1059,7 @@ function startEditStudent(id){
   document.getElementById('s-phone').value = s.phone || '';
   document.getElementById('s-birth').value = s.birthDate || '';
   document.getElementById('s-address').value = s.address || '';
+  document.getElementById('s-behavior').value = s.behavior || '';
   document.getElementById('s-notes').value = s.notes || '';
   const prev = document.getElementById('s-photo-preview');
   if(s.photo){
@@ -1069,11 +1104,12 @@ function renderStudents(){
     const photoHtml = s.photo
       ? `<img class="avatar-sm" src="${s.photo}" alt="">`
       : `<span class="avatar-sm placeholder">👤</span>`;
-    return `<div class="student-row" onclick="openStudent(${s.id})">
+    const beh = behClass(s.behavior);
+    return `<div class="student-row ${beh ? 'beh-'+beh : ''}" onclick="openStudent(${s.id})">
       <div class="student-name">
         <div style="display:flex; align-items:center;">
           <span style="color:var(--muted); font-size:12px; font-weight:600; width:22px; flex-shrink:0;">${idx+1}.</span>
-          ${photoHtml}<span>${escapeHTML(s.name)} <span style="color:var(--muted); font-weight:400; font-size:12px;">ID ${escapeHTML(s.studentId)}</span></span>
+          ${photoHtml}<span>${escapeHTML(s.name)} <span style="color:var(--muted); font-weight:400; font-size:12px;">ID ${escapeHTML(s.studentId)}</span>${behBadgeHtml(s.behavior)}</span>
         </div>
         <div style="display:flex; gap:2px;">
           <button class="icon-btn" title="Редактировать" onclick="event.stopPropagation(); startEditStudent(${s.id})">✎</button>
@@ -1109,13 +1145,14 @@ function openStudent(id){
         ${photoBlock}
         <div class="id-info">
           <div class="id-name">${escapeHTML(s.name)}</div>
-          <div class="id-meta">${s.course} курс · ${escapeHTML(s.group)}</div>
+          <div class="id-meta">${s.course} курс · ${escapeHTML(s.group)}${s.behavior && BEH_LABEL[s.behavior] ? ' · ' + BEH_ICON[s.behavior] + ' ' + BEH_LABEL[s.behavior] : ''}</div>
         </div>
       </div>
       <div class="id-fields">
         <div><span class="lbl">Телефон</span><span class="val">${escapeHTML(s.phone || '—')}</span></div>
         <div><span class="lbl">Дата рождения</span><span class="val">${birthStr}</span></div>
         <div style="grid-column:1/-1;"><span class="lbl">Адрес</span><span class="val">${escapeHTML(s.address || '—')}</span></div>
+        <div style="grid-column:1/-1;"><span class="lbl">Характер</span><span class="val">${s.behavior && BEH_LABEL[s.behavior] ? BEH_ICON[s.behavior] + ' ' + BEH_LABEL[s.behavior] : 'Обычный'}</span></div>
         ${s.notes ? `<div style="grid-column:1/-1;"><span class="lbl">Заметки</span><span class="val">${escapeHTML(s.notes)}</span></div>` : ''}
       </div>
     </div>`;
