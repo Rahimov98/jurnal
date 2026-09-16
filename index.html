@@ -113,10 +113,16 @@
   table.journal thead th{background:var(--surface-2); padding:6px 4px; font-size:11px; white-space:nowrap; position:sticky; top:0;}
   table.journal thead th .j-dow{display:block; font-size:9px; color:var(--muted); font-weight:400;}
   table.journal thead th .j-count{display:block; font-size:9px; color:var(--success); font-weight:700;}
-  table.journal thead th.j-name-col, table.journal td.j-name{position:sticky; left:0; background:var(--surface); z-index:2;
-    min-width:130px; max-width:130px; text-align:left; padding:8px; font-weight:600;}
+  table.journal thead th.j-num-col, table.journal td.j-num{
+    position:sticky; left:0; background:var(--surface); z-index:2;
+    width:32px; min-width:32px; max-width:32px; text-align:center; padding:6px 2px;
+    font-size:11px; color:var(--muted); font-weight:600;}
+  table.journal thead th.j-num-col{z-index:3; background:var(--surface-2);}
+  table.journal thead th.j-name-col, table.journal td.j-name{position:sticky; left:32px; background:var(--surface); z-index:2;
+    min-width:120px; max-width:140px; text-align:left; padding:8px; font-weight:600;}
   table.journal thead th.j-name-col{z-index:3; background:var(--surface-2);}
   table.journal td.j-name{border-right:2px solid var(--primary);}
+  table.journal td.j-num{border-right:1px solid var(--line);}
   .j-cell{width:100%; min-width:38px; height:38px; border:none; background:transparent; cursor:pointer;
     font-size:14px; font-weight:700; font-family:inherit; color:var(--muted); padding:0;}
   .j-cell.mark-present{color:var(--success); background:rgba(39,174,96,.12);}
@@ -168,6 +174,24 @@
   .avatar-sm.placeholder{display:inline-flex; align-items:center; justify-content:center; font-size:16px; color:var(--muted);}
   .photo-preview{width:80px; height:80px; border-radius:12px; object-fit:cover; background:var(--surface-2); margin-bottom:8px; display:block;}
   .photo-preview.placeholder{display:flex; align-items:center; justify-content:center; font-size:32px; color:var(--muted);}
+
+  /* Charts */
+  .chart-block{margin-bottom:18px;}
+  .chart-title{font-size:13px; font-weight:600; color:var(--text); margin-bottom:10px;}
+  .donut-wrap{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+  .donut{width:120px; height:120px; border-radius:50%; position:relative; flex-shrink:0;}
+  .donut-center{position:absolute; inset:22px; background:var(--surface); border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .donut-center .big{font-size:20px; font-weight:700; color:var(--primary);}
+  .donut-center .small{font-size:10px; color:var(--muted);}
+  .donut-legend{flex:1; min-width:120px;}
+  .legend-row{display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12px;}
+  .legend-dot{width:10px; height:10px; border-radius:3px; flex-shrink:0;}
+  .bar-chart{display:flex; flex-direction:column; gap:8px;}
+  .bar-row{display:flex; align-items:center; gap:8px; font-size:12px;}
+  .bar-label{width:90px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .bar-track{flex:1; height:14px; background:var(--surface-2); border-radius:7px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:7px; transition:width .3s ease;}
+  .bar-val{width:36px; text-align:right; font-weight:700; font-size:11px;}
 </style>
 </head>
 <body>
@@ -210,6 +234,10 @@
             <option value="4">4 курс</option>
           </select>
           <button class="ghost" style="width:auto; padding:9px 14px;" id="btnAddDay" type="button">+ День</button>
+        </div>
+        <div class="two-col" style="margin-bottom:4px; font-size:11px; color:var(--muted);">
+          <span>С даты</span>
+          <span>По дату</span>
         </div>
         <div class="two-col" style="margin-bottom:8px;">
           <input id="j-date-from" type="date" title="С даты">
@@ -320,6 +348,11 @@
           <option value="4">4 курс</option>
         </select>
         <div id="st-overview"></div>
+      </div>
+
+      <div class="card">
+        <h2>📊 Диаграммы</h2>
+        <div id="st-charts"></div>
       </div>
 
       <div class="card">
@@ -702,18 +735,18 @@ function renderJournal(){
   const wrap = document.getElementById('j-table');
   if(!students.length){ wrap.innerHTML = '<div class="empty">Студентов не найдено. Добавьте их во вкладке «Студенты».</div>'; renderQuick(); return; }
 
-  let html = '<div class="journal-wrap"><table class="journal"><thead><tr><th class="j-name-col">Студент</th>';
+  let html = '<div class="journal-wrap"><table class="journal"><thead><tr><th class="j-num-col">№</th><th class="j-name-col">Студент</th>';
   dates.forEach(d=>{
     const presentCnt = students.filter(s => getStatus((journalCache[s.id] || {})[d]) === 'present').length;
     html += `<th>${fmtDate(d)}<span class="j-dow">${weekday(d)}</span><span class="j-count">${presentCnt||''}</span></th>`;
   });
   html += '<th>%</th></tr></thead><tbody>';
 
-  students.forEach(s=>{
+  students.forEach((s, idx)=>{
     const photoHtml = s.photo
       ? `<img class="avatar-sm" src="${s.photo}" alt="">`
       : `<span class="avatar-sm placeholder">👤</span>`;
-    html += `<tr><td class="j-name" onclick="openStudent(${s.id})">${photoHtml}${escapeHTML(s.name)}</td>`;
+    html += `<tr><td class="j-num">${idx + 1}</td><td class="j-name" onclick="openStudent(${s.id})">${photoHtml}${escapeHTML(s.name)}</td>`;
     dates.forEach(d=>{
       const att = (journalCache[s.id] || {})[d];
       const st = getStatus(att);
@@ -1006,7 +1039,7 @@ function renderStudents(){
   const list = document.getElementById('s-list');
   if(!arr.length){ list.innerHTML = '<div class="empty">Студентов не найдено</div>'; return; }
 
-  list.innerHTML = arr.map(s=>{
+  list.innerHTML = arr.map((s, idx)=>{
     const attDates = Object.keys(s.attendance || {});
     const present = attDates.filter(d => getStatus(s.attendance[d])==='present').length;
     const absent = attDates.filter(d => getStatus(s.attendance[d])==='absent').length;
@@ -1017,7 +1050,10 @@ function renderStudents(){
       : `<span class="avatar-sm placeholder">👤</span>`;
     return `<div class="student-row" onclick="openStudent(${s.id})">
       <div class="student-name">
-        <div style="display:flex; align-items:center;">${photoHtml}<span>${escapeHTML(s.name)} <span style="color:var(--muted); font-weight:400; font-size:12px;">ID ${escapeHTML(s.studentId)}</span></span></div>
+        <div style="display:flex; align-items:center;">
+          <span style="color:var(--muted); font-size:12px; font-weight:600; width:22px; flex-shrink:0;">${idx+1}.</span>
+          ${photoHtml}<span>${escapeHTML(s.name)} <span style="color:var(--muted); font-weight:400; font-size:12px;">ID ${escapeHTML(s.studentId)}</span></span>
+        </div>
         <div style="display:flex; gap:2px;">
           <button class="icon-btn" title="Редактировать" onclick="event.stopPropagation(); startEditStudent(${s.id})">✎</button>
           <button class="icon-btn danger" title="Удалить" onclick="event.stopPropagation(); delStudent(${s.id})">✕</button>
@@ -1179,6 +1215,7 @@ function renderStats(){
 
   if(!students.length){
     document.getElementById('st-overview').innerHTML = '<div class="empty">Студентов не найдено</div>';
+    document.getElementById('st-charts').innerHTML = '<div class="empty">Нет данных</div>';
     document.getElementById('st-top-attendance').innerHTML = '<div class="empty">Нет данных</div>';
     document.getElementById('st-risk').innerHTML = '<div class="empty">Нет данных</div>';
     document.getElementById('st-avg-grades').innerHTML = '<div class="empty">Нет данных</div>';
@@ -1206,14 +1243,97 @@ function renderStats(){
       <div class="stat-box"><div class="val">${avgPresence}%</div><div class="lbl">посещаемость</div></div>
     </div>`;
 
+  /* ===== CHARTS ===== */
+  const pPct = totalDays ? Math.round(totalPresent/totalDays*100) : 0;
+  const aPct = totalDays ? Math.round(totalAbsent/totalDays*100) : 0;
+  const lPct = totalDays ? Math.round(totalLate/totalDays*100) : 0;
+  // conic-gradient donut
+  const donutBg = totalDays
+    ? `conic-gradient(var(--success) 0% ${pPct}%, var(--danger) ${pPct}% ${pPct+aPct}%, var(--warning) ${pPct+aPct}% 100%)`
+    : 'conic-gradient(var(--line) 0% 100%)';
+
+  // attendance distribution by ranges
+  const ranges = [
+    {label:'90–100%', min:90, max:101, color:'var(--success)', count:0},
+    {label:'75–89%', min:75, max:90, color:'#2ecc71', count:0},
+    {label:'60–74%', min:60, max:75, color:'var(--warning)', count:0},
+    {label:'< 60%', min:0, max:60, color:'var(--danger)', count:0},
+  ];
   const att = students.map(s=>{
     const dates = Object.values(s.attendance || {});
     const present = dates.filter(v => getStatus(v)==='present').length;
     const pct = dates.length ? Math.round(present/dates.length*100) : 0;
+    if(dates.length){
+      const r = ranges.find(x => pct >= x.min && pct < x.max);
+      if(r) r.count++;
+    }
     return {s, pct, present, total:dates.length};
   }).sort((a,b)=> b.pct-a.pct || byName(a.s,b.s));
 
-  document.getElementById('st-top-attendance').innerHTML = att.slice(0, 5).map(a=>
+  const maxRange = Math.max(1, ...ranges.map(r=>r.count));
+
+  // subject averages for bar chart
+  const bySubj = {};
+  students.forEach(s=>{
+    Object.entries(s.grades || {}).forEach(([subj, byDate])=>{
+      if(!bySubj[subj]) bySubj[subj] = [];
+      Object.values(byDate).forEach(g=>bySubj[subj].push(parseFloat(g)||0));
+    });
+  });
+  const subjAvgs = Object.entries(bySubj).map(([subj, grades])=>{
+    const avg = grades.reduce((a,b)=>a+b,0)/grades.length;
+    return {subj, avg: +avg.toFixed(1), n: grades.length};
+  }).sort((a,b)=>b.avg-a.avg);
+
+  document.getElementById('st-charts').innerHTML = `
+    <div class="chart-block">
+      <div class="chart-title">Распределение посещаемости</div>
+      <div class="donut-wrap">
+        <div class="donut" style="background:${donutBg}">
+          <div class="donut-center">
+            <div class="big">${avgPresence}%</div>
+            <div class="small">общая</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="legend-row"><span class="legend-dot" style="background:var(--success)"></span> Присут. ${totalPresent} (${pPct}%)</div>
+          <div class="legend-row"><span class="legend-dot" style="background:var(--danger)"></span> Отсут. ${totalAbsent} (${aPct}%)</div>
+          <div class="legend-row"><span class="legend-dot" style="background:var(--warning)"></span> Опозд. ${totalLate} (${lPct}%)</div>
+          <div class="legend-row" style="color:var(--muted); margin-top:4px;">Всего отметок: ${totalDays}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-block">
+      <div class="chart-title">Студенты по уровню посещаемости</div>
+      <div class="bar-chart">
+        ${ranges.map(r => `
+          <div class="bar-row">
+            <div class="bar-label">${r.label}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(r.count/maxRange*100)}%; background:${r.color};"></div></div>
+            <div class="bar-val">${r.count}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    ${subjAvgs.length ? `
+    <div class="chart-block">
+      <div class="chart-title">Средний балл по предметам</div>
+      <div class="bar-chart">
+        ${subjAvgs.map(s => {
+          const w = Math.min(100, Math.round(s.avg / 5 * 100));
+          const col = s.avg >= 4.5 ? 'var(--success)' : (s.avg >= 3.5 ? 'var(--warning)' : 'var(--danger)');
+          return `<div class="bar-row">
+            <div class="bar-label" title="${escapeHTML(s.subj)}">${escapeHTML(s.subj)}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${w}%; background:${col};"></div></div>
+            <div class="bar-val">${s.avg}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : '<div class="empty" style="margin-top:8px;">Нет данных об оценках для диаграммы</div>'}
+  `;
+
+  document.getElementById('st-top-attendance').innerHTML = att.slice(0, 8).map(a=>
     `<div style="padding:8px; border-bottom:1px solid var(--line);" onclick="openStudent(${a.s.id})">
       <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
         <span style="font-weight:500;">${escapeHTML(a.s.name)} <span style="color:var(--muted); font-size:11px;">${a.s.course} курс</span></span>
@@ -1234,14 +1354,7 @@ function renderStats(){
       </div>`).join('')
     : '<div class="empty" style="color:var(--success);">Рисковых студентов нет 🎉</div>';
 
-  /* average grade per subject */
-  const bySubj = {};
-  students.forEach(s=>{
-    Object.entries(s.grades).forEach(([subj, byDate])=>{
-      if(!bySubj[subj]) bySubj[subj] = [];
-      Object.values(byDate).forEach(g=>bySubj[subj].push(parseFloat(g)||0));
-    });
-  });
+  /* average grade per subject (list) */
   document.getElementById('st-avg-grades').innerHTML = Object.entries(bySubj).map(([subj, grades])=>{
     const avg = (grades.reduce((a,b)=>a+b,0)/grades.length).toFixed(1);
     const badge = avg>=4.5?'g':(avg>=3.5?'y':'r');
