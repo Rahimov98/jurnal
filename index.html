@@ -255,24 +255,40 @@
           <input id="j-date-from" type="date" title="С даты">
           <input id="j-date-to" type="date" title="По дату">
         </div>
-        <div class="two-col" style="margin-bottom:10px;">
+        <div class="two-col" style="margin-bottom:8px;">
+          <select id="j-pairs" onchange="onPairsChange()" title="Сколько пар в день">
+            <option value="1">1 пара</option>
+            <option value="2" selected>2 пары</option>
+            <option value="3">3 пары</option>
+            <option value="4">4 пары</option>
+          </select>
           <button class="ghost" style="padding:9px;" type="button" onclick="applyDateRange()">📅 Период</button>
-          <button class="ghost" style="padding:9px; color:var(--danger); border-color:var(--danger);" type="button" onclick="removeJournalDay()">− День</button>
         </div>
-        <input id="j-add-day" type="date" style="margin-bottom:10px; display:none;" onchange="addJournalDay(this.value)">
+        <div style="margin-bottom:10px;">
+          <button class="ghost" style="padding:9px; color:var(--danger); border-color:var(--danger); width:100%;" type="button" onclick="removeJournalDay()">− Удалить день / период</button>
+        </div>
+        <input id="j-add-day" type="date" style="display:none;" onchange="addJournalDay(this.value)">
         <div id="j-table"></div>
         <div class="legend">
           <span><b style="color:var(--success)">✓</b> присутствовал</span>
           <span><b style="color:var(--danger)">✗</b> отсутствовал</span>
           <span><b style="color:var(--warning)">⏱</b> опоздание</span>
-          <span>нажатие — смена отметки · долгое нажатие — комментарий 💬</span>
+          <span>П1 / П2 — номер пары · долгое нажатие — комментарий 💬</span>
         </div>
         <button class="primary" style="margin-top:12px;" onclick="saveJournal()">💾 Сохранить журнал</button>
       </div>
 
       <div class="card">
         <h2>⚡ Быстрая отметка</h2>
-        <input type="date" id="j-quick-date" style="margin-bottom:10px;" onchange="renderQuick()">
+        <div class="two-col" style="margin-bottom:10px;">
+          <input type="date" id="j-quick-date" onchange="renderQuick()">
+          <select id="j-quick-pair" onchange="renderQuick()">
+            <option value="1">1 пара</option>
+            <option value="2">2 пара</option>
+            <option value="3">3 пара</option>
+            <option value="4">4 пара</option>
+          </select>
+        </div>
         <div id="j-quick"></div>
       </div>
     </section>
@@ -518,13 +534,21 @@ state.students.forEach(s=>{
   if(s.notes === undefined) s.notes = '';
   if(s.photo === undefined) s.photo = '';
   if(s.behavior === undefined) s.behavior = '';
-  // migrate attendance string -> {status, comment}
-  Object.keys(s.attendance).forEach(d=>{
-    const v = s.attendance[d];
+  // migrate attendance string -> {status, comment}; plain date -> date#1
+  const attKeys = Object.keys(s.attendance);
+  attKeys.forEach(d=>{
+    let v = s.attendance[d];
     if(typeof v === 'string'){
-      s.attendance[d] = { status: v, comment: '' };
+      v = { status: v, comment: '' };
     } else if(v && typeof v === 'object' && !v.status){
-      s.attendance[d] = { status: 'present', comment: '' };
+      v = { status: 'present', comment: '' };
+    }
+    if(d.indexOf('#') === -1 && /^\d{4}-\d{2}-\d{2}$/.test(d)){
+      // old single-day mark → pair 1
+      delete s.attendance[d];
+      s.attendance[d + '#1'] = v;
+    } else {
+      s.attendance[d] = v;
     }
   });
   Object.keys(s.grades).forEach(k=>{
@@ -629,8 +653,62 @@ function removePassword(){
 function pad(n){ return String(n).padStart(2,'0'); }
 function todayISO(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 function escapeHTML(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-function fmtDate(iso){ const p = iso.split('-'); return `${p[2]}.${p[1]}`; }
-function weekday(iso){ return ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][new Date(iso+'T00:00:00').getDay()]; }
+function fmtDate(iso){
+  // supports plain date or date#pair
+  const base = String(iso).split('#')[0];
+  const p = base.split('-');
+  if(p.length < 3) return iso;
+  return `${p[2]}.${p[1]}`;
+}
+function weekday(iso){
+  const base = String(iso).split('#')[0];
+  return ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][new Date(base+'T00:00:00').getDay()];
+}
+function pairKey(date, pair){ return date + '#' + pair; }
+function parseKey(key){
+  const parts = String(key).split('#');
+  return { date: parts[0], pair: parts[1] ? parseInt(parts[1],10) : 1 };
+}
+function getPairsCount(){
+  const el = document.getElementById('j-pairs');
+  return el ? (parseInt(el.value,10) || 2) : 2;
+}
+function expandDayToPairs(dateIso, pairs){
+  const n = pairs || getPairsCount();
+  const out = [];
+  for(let i=1;i<=n;i++) out.push(pairKey(dateIso, i));
+  return out;
+}
+function onPairsChange(){
+  // re-expand already selected calendar days into pair columns
+  const days = new Set();
+  journalExtraDays.forEach(k => days.add(parseKey(k).date));
+  // also from existing attendance
+  journalStudents().forEach(s => {
+    Object.keys(s.attendance||{}).forEach(k => days.add(parseKey(k).date));
+    if(journalCache[s.id]) Object.keys(journalCache[s.id]).forEach(k => days.add(parseKey(k).date));
+  });
+  const n = getPairsCount();
+  const next = new Set();
+  days.forEach(d => {
+    for(let i=1;i<=n;i++) next.add(pairKey(d,i));
+  });
+  journalExtraDays = next;
+  // update quick pair select options visibility conceptually - just re-render
+  const qp = document.getElementById('j-quick-pair');
+  if(qp){
+    const cur = qp.value;
+    qp.innerHTML = '';
+    for(let i=1;i<=n;i++){
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = i + ' пара';
+      if(String(i)===cur) opt.selected = true;
+      qp.appendChild(opt);
+    }
+  }
+  renderJournal();
+}
 function byName(a,b){ return a.name.localeCompare(b.name, 'ru'); }
 function switchView(v){
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
@@ -747,7 +825,12 @@ function journalDates(){
     Object.keys(s.attendance || {}).forEach(d => set.add(d));
     if (journalCache[s.id]) Object.keys(journalCache[s.id]).forEach(d => set.add(d));
   });
-  return [...set].sort();
+  // sort by date then pair number
+  return [...set].sort((a,b)=>{
+    const pa = parseKey(a), pb = parseKey(b);
+    if(pa.date !== pb.date) return pa.date.localeCompare(pb.date);
+    return pa.pair - pb.pair;
+  });
 }
 function renderJournal(){
   fillGroupDatalist();
@@ -770,7 +853,9 @@ function renderJournal(){
   let html = '<div class="journal-wrap"><table class="journal"><thead><tr><th class="j-num-col">№</th><th class="j-name-col">Студент</th>';
   dates.forEach(d=>{
     const presentCnt = students.filter(s => getStatus((journalCache[s.id] || {})[d]) === 'present').length;
-    html += `<th>${fmtDate(d)}<span class="j-dow">${weekday(d)}</span><span class="j-count">${presentCnt||''}</span></th>`;
+    const pk = parseKey(d);
+    const pairLabel = pk.pair ? ('П' + pk.pair) : '';
+    html += `<th>${fmtDate(d)}<span class="j-dow">${weekday(d)}${pairLabel ? ' · '+pairLabel : ''}</span><span class="j-count">${presentCnt||''}</span></th>`;
   });
   html += '<th>%</th></tr></thead><tbody>';
 
@@ -827,7 +912,7 @@ function renderJournalKeepScroll(){
 }
 function addJournalDay(v){
   if(!v) return;
-  journalExtraDays.add(v);
+  expandDayToPairs(v).forEach(k => journalExtraDays.add(k));
   renderJournal();
 }
 function applyDateRange(){
@@ -843,12 +928,12 @@ function applyDateRange(){
   }
   const start = new Date(from + 'T00:00:00');
   const end = new Date(to + 'T00:00:00');
-  // limit to avoid huge tables (max ~120 days)
-  const maxDays = 120;
+  const maxDays = 90;
   let count = 0;
+  const n = getPairsCount();
   for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
     const iso = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    journalExtraDays.add(iso);
+    expandDayToPairs(iso, n).forEach(k => journalExtraDays.add(k));
     count++;
     if(count > maxDays){
       alert('Слишком длинный период. Добавлено максимум ' + maxDays + ' дней.');
@@ -856,33 +941,38 @@ function applyDateRange(){
     }
   }
   renderJournal();
-  alert('Добавлено дней: ' + Math.min(count, maxDays) + ' ✅');
+  alert('Добавлено: ' + Math.min(count, maxDays) + ' дн. × ' + n + ' пар ✅');
 }
 function removeJournalDay(){
   const from = document.getElementById('j-date-from').value;
   const to = document.getElementById('j-date-to').value;
-  // prefer single day from "from" if only one set, else range
-  let datesToRemove = [];
+  let baseDates = [];
   if(from && to && from <= to){
     const start = new Date(from + 'T00:00:00');
     const end = new Date(to + 'T00:00:00');
     for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
-      datesToRemove.push(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`);
+      baseDates.push(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`);
     }
   } else if(from){
-    datesToRemove = [from];
+    baseDates = [from];
   } else {
     alert('Укажите дату (или период) в полях выше, которую хотите удалить');
     return;
   }
-  if(!confirm('Удалить отметки за выбранные дни (' + datesToRemove.length + ') у отфильтрованных студентов?')) return;
+  // remove all pair keys for these calendar days
+  const keysToRemove = [];
+  baseDates.forEach(day => {
+    for(let i=1;i<=6;i++) keysToRemove.push(pairKey(day,i));
+    keysToRemove.push(day); // old format without pair
+  });
+  if(!confirm('Удалить отметки за выбранные дни у отфильтрованных студентов?')) return;
   journalStudents().forEach(s => {
-    datesToRemove.forEach(v => {
+    keysToRemove.forEach(v => {
       if(journalCache[s.id]) delete journalCache[s.id][v];
       if(s.attendance) delete s.attendance[v];
     });
   });
-  datesToRemove.forEach(v => journalExtraDays.delete(v));
+  keysToRemove.forEach(v => journalExtraDays.delete(v));
   save();
   renderJournal();
   alert('Дни удалены ✅');
@@ -909,10 +999,13 @@ function renderQuick(){
   const students = journalStudents();
   const dateEl = document.getElementById('j-quick-date');
   if (dateEl && !dateEl.value) dateEl.value = todayISO();
-  const d = (dateEl && dateEl.value) || todayISO();
+  const pairEl = document.getElementById('j-quick-pair');
+  const pair = (pairEl && pairEl.value) || '1';
+  const d = pairKey((dateEl && dateEl.value) || todayISO(), pair);
   const el = document.getElementById('j-quick');
   if(!students.length){ el.innerHTML = '<div class="empty">Нет студентов</div>'; return; }
-  el.innerHTML = students.map(s=>{
+  el.innerHTML = `<div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Отметка: ${fmtDate(d)} · ${pair} пара</div>` +
+  students.map(s=>{
     const st = getStatus((journalCache[s.id] || {})[d]);
     return `<div class="attendance-row">
       <div class="att-name">${escapeHTML(s.name)} <span style="color:var(--muted); font-size:11px;">${escapeHTML(s.group)}</span></div>
@@ -926,16 +1019,16 @@ function renderQuick(){
 }
 function quickSet(sid, status){
   const dateEl = document.getElementById('j-quick-date');
-  const d = (dateEl && dateEl.value) || todayISO();
+  const pairEl = document.getElementById('j-quick-pair');
+  const pair = (pairEl && pairEl.value) || '1';
+  const d = pairKey((dateEl && dateEl.value) || todayISO(), pair);
   if (!journalCache[sid]) journalCache[sid] = {};
   const curAtt = journalCache[sid][d];
   const cur = getStatus(curAtt);
   const prevComment = getComment(curAtt);
   if (cur === status) {
-    // повторное нажатие той же кнопки — снять отметку
     delete journalCache[sid][d];
   } else {
-    // смена статуса — комментарий сохраняется
     journalCache[sid][d] = makeAtt(status, prevComment);
   }
   journalExtraDays.add(d);
@@ -969,8 +1062,9 @@ function openCommentModal(sid, d){
   commentTarget = {sid, date: d};
   const att = (journalCache[sid] || {})[d];
   const st = getStatus(att);
+  const pk = parseKey(d);
   document.getElementById('c-title').textContent = st === 'late' ? 'Комментарий к опозданию' : (st === 'absent' ? 'Комментарий к отсутствию' : 'Комментарий');
-  document.getElementById('c-sub').textContent = s.name + ' · ' + fmtDate(d) + ' (' + weekday(d) + ')';
+  document.getElementById('c-sub').textContent = s.name + ' · ' + fmtDate(d) + ' (' + weekday(d) + ')' + (pk.pair ? ' · ' + pk.pair + ' пара' : '');
   document.getElementById('c-text').value = getComment(att);
   document.getElementById('commentModal').classList.add('open');
   setTimeout(() => document.getElementById('c-text').focus(), 100);
@@ -1186,7 +1280,11 @@ function openStudent(id){
   });
   comments.sort((a,b)=>b.d.localeCompare(a.d));
   document.getElementById('m-comments').innerHTML = comments.length
-    ? comments.map(r => `<div class="m-line"><span>${fmtDate(r.d)} <span style="color:var(--muted);">${r.status==='late'?'⏱':'✗'}</span></span><span style="text-align:right; max-width:55%;">${escapeHTML(r.c)}</span></div>`).join('')
+    ? comments.map(r => {
+        const pk = parseKey(r.d);
+        const pairStr = pk.pair ? ' П'+pk.pair : '';
+        return `<div class="m-line"><span>${fmtDate(r.d)}${pairStr} <span style="color:var(--muted);">${r.status==='late'?'⏱':'✗'}</span></span><span style="text-align:right; max-width:55%;">${escapeHTML(r.c)}</span></div>`;
+      }).join('')
     : '<div class="empty">Комментариев пока нет</div>';
 
   document.getElementById('m-edit-btn').onclick = function(){ closeModal(); startEditStudent(id); switchView('students'); };
