@@ -143,6 +143,31 @@
   .badge.g{background:rgba(52,152,219,.15); color:var(--primary);}
   .badge.y{background:rgba(243,156,18,.15); color:var(--warning);}
   .badge.r{background:rgba(231,76,60,.15); color:var(--danger);}
+
+  /* Student ID card */
+  .id-card{background:linear-gradient(145deg,#2c3e50 0%,#34495e 100%); border-radius:14px; padding:16px; color:#fff; margin-bottom:16px; position:relative; overflow:hidden;}
+  .id-card::before{content:''; position:absolute; top:-20px; right:-20px; width:100px; height:100px; background:rgba(52,152,219,.2); border-radius:50%;}
+  .id-top{display:flex; gap:14px; align-items:flex-start;}
+  .id-photo{width:72px; height:72px; border-radius:12px; object-fit:cover; background:#1a252f; border:2px solid rgba(255,255,255,.25); flex-shrink:0;}
+  .id-photo.placeholder{display:flex; align-items:center; justify-content:center; font-size:28px; color:rgba(255,255,255,.4);}
+  .id-info{flex:1; min-width:0;}
+  .id-name{font-size:17px; font-weight:700; margin:0 0 4px; line-height:1.25;}
+  .id-meta{font-size:12px; opacity:.85; margin-bottom:8px;}
+  .id-fields{display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; margin-top:10px; font-size:11px;}
+  .id-fields .lbl{opacity:.65; display:block; margin-bottom:1px;}
+  .id-fields .val{font-weight:600; word-break:break-word;}
+  .id-badge{position:absolute; top:12px; right:12px; background:rgba(52,152,219,.35); padding:3px 8px; border-radius:8px; font-size:10px; font-weight:700;}
+
+  /* Comment modal */
+  #commentModal.modal-back{z-index:60;}
+  .comment-area{width:100%; min-height:70px; resize:vertical; margin-bottom:10px;}
+  .j-cell.has-comment{position:relative;}
+  .j-cell.has-comment::after{content:'💬'; position:absolute; top:1px; right:1px; font-size:8px; line-height:1;}
+
+  .avatar-sm{width:36px; height:36px; border-radius:8px; object-fit:cover; background:var(--surface-2); vertical-align:middle; margin-right:8px;}
+  .avatar-sm.placeholder{display:inline-flex; align-items:center; justify-content:center; font-size:16px; color:var(--muted);}
+  .photo-preview{width:80px; height:80px; border-radius:12px; object-fit:cover; background:var(--surface-2); margin-bottom:8px; display:block;}
+  .photo-preview.placeholder{display:flex; align-items:center; justify-content:center; font-size:32px; color:var(--muted);}
 </style>
 </head>
 <body>
@@ -186,10 +211,15 @@
           </select>
           <button class="ghost" style="width:auto; padding:9px 14px;" id="btnAddDay" type="button">+ День</button>
         </div>
-        <div class="two-col" style="margin-bottom:10px;">
-          <input id="j-add-day" type="date" onchange="addJournalDay(this.value)">
-          <button class="ghost" style="width:auto; padding:9px 12px; color:var(--danger); border-color:var(--danger);" type="button" onclick="removeJournalDay()">− День</button>
+        <div class="two-col" style="margin-bottom:8px;">
+          <input id="j-date-from" type="date" title="С даты">
+          <input id="j-date-to" type="date" title="По дату">
         </div>
+        <div class="two-col" style="margin-bottom:10px;">
+          <button class="ghost" style="padding:9px;" type="button" onclick="applyDateRange()">📅 Период</button>
+          <button class="ghost" style="padding:9px; color:var(--danger); border-color:var(--danger);" type="button" onclick="removeJournalDay()">− День</button>
+        </div>
+        <input id="j-add-day" type="date" style="margin-bottom:10px; display:none;" onchange="addJournalDay(this.value)">
         <div id="j-table"></div>
         <div class="legend">
           <span><b style="color:var(--success)">✓</b> присутствовал</span>
@@ -225,7 +255,11 @@
         <div class="toggle-form" id="btnToggleForm">+ Добавить студента</div>
         <div id="s-form" style="display:none; margin-top:10px;">
           <div class="form-row">
-            <input id="s-name" placeholder="Полное имя">
+            <div style="text-align:center;">
+              <div id="s-photo-preview" class="photo-preview placeholder">📷</div>
+              <input type="file" id="s-photo" accept="image/*" style="font-size:12px;" onchange="previewStudentPhoto(this)">
+            </div>
+            <input id="s-name" placeholder="Полное имя *">
             <input id="s-studentid" placeholder="ID студента">
             <input id="s-group" list="groups-list" placeholder="Группа (напр. ИВТ-101)">
             <select id="s-course">
@@ -234,6 +268,10 @@
               <option value="3">3 курс</option>
               <option value="4">4 курс</option>
             </select>
+            <input id="s-phone" type="tel" placeholder="Телефон">
+            <input id="s-birth" type="date" placeholder="Дата рождения">
+            <input id="s-address" placeholder="Адрес">
+            <textarea id="s-notes" placeholder="Заметки (необязательно)" rows="2" style="resize:vertical;"></textarea>
             <button class="primary" id="s-submit-btn" onclick="saveStudent()">Добавить</button>
             <button class="ghost" id="s-cancel-btn" style="display:none; margin-top:6px;" onclick="cancelEditStudent()">Отмена</button>
           </div>
@@ -356,8 +394,7 @@
 <!-- ===== STUDENT MODAL ===== -->
 <div class="modal-back" id="modalBack" onclick="if(event.target===this) closeModal()">
   <div class="modal">
-    <h3 id="m-name"></h3>
-    <div class="m-sub" id="m-sub"></div>
+    <div id="m-idcard"></div>
     <div class="m-section">
       <h4>Посещаемость</h4>
       <div id="m-attendance"></div>
@@ -366,8 +403,24 @@
       <h4>Оценки</h4>
       <div id="m-grades"></div>
     </div>
+    <div class="m-section">
+      <h4>Комментарии к пропускам</h4>
+      <div id="m-comments"></div>
+    </div>
     <button class="primary" id="m-edit-btn" style="margin-bottom:8px;">✎ Редактировать</button>
     <button class="ghost m-close" onclick="closeModal()">Закрыть</button>
+  </div>
+</div>
+
+<!-- ===== COMMENT MODAL ===== -->
+<div class="modal-back" id="commentModal" onclick="if(event.target===this) closeCommentModal()">
+  <div class="modal">
+    <h3 id="c-title">Комментарий</h3>
+    <div class="m-sub" id="c-sub"></div>
+    <textarea id="c-text" class="comment-area" placeholder="Например: болел, опоздал на 5 минут, по семейным обстоятельствам..."></textarea>
+    <button class="primary" onclick="saveComment()">💾 Сохранить</button>
+    <button class="ghost" style="margin-top:8px;" onclick="clearComment()">Очистить комментарий</button>
+    <button class="ghost m-close" onclick="closeCommentModal()">Закрыть</button>
   </div>
 </div>
 
@@ -386,28 +439,42 @@ function isoOffset(days){
 }
 const seed = {
   students: [
-    {id:1, name:'Иван Петров', studentId:'001', group:'ИВТ-101', course:1,
-      attendance:{[isoOffset(4)]:'present',[isoOffset(3)]:'present',[isoOffset(2)]:'late',[isoOffset(1)]:'absent'},
+    {id:1, name:'Иван Петров', studentId:'001', group:'ИВТ-101', course:1, phone:'+7 900 111-22-33', birthDate:'2005-03-12', address:'г. Москва',
+      attendance:{[isoOffset(4)]:{status:'present'},[isoOffset(3)]:{status:'present'},[isoOffset(2)]:{status:'late',comment:'5 мин'},[isoOffset(1)]:{status:'absent',comment:'болел'}},
       grades:{'Математика':{[isoOffset(3)]:'4',[isoOffset(1)]:'5'},'Русский язык':{[isoOffset(2)]:'4'}}},
-    {id:2, name:'Мария Сидорова', studentId:'002', group:'ИВТ-101', course:1,
-      attendance:{[isoOffset(4)]:'present',[isoOffset(3)]:'present',[isoOffset(2)]:'present',[isoOffset(1)]:'present'},
+    {id:2, name:'Мария Сидорова', studentId:'002', group:'ИВТ-101', course:1, phone:'+7 900 222-33-44', birthDate:'2005-07-21', address:'г. Москва',
+      attendance:{[isoOffset(4)]:{status:'present'},[isoOffset(3)]:{status:'present'},[isoOffset(2)]:{status:'present'},[isoOffset(1)]:{status:'present'}},
       grades:{'Математика':{[isoOffset(3)]:'5',[isoOffset(1)]:'5'},'Русский язык':{[isoOffset(2)]:'5'}}},
-    {id:3, name:'Алексей Иванов', studentId:'003', group:'ИВТ-101', course:1,
-      attendance:{[isoOffset(4)]:'late',[isoOffset(3)]:'absent',[isoOffset(2)]:'present',[isoOffset(1)]:'present'},
+    {id:3, name:'Алексей Иванов', studentId:'003', group:'ИВТ-101', course:1, phone:'', birthDate:'', address:'',
+      attendance:{[isoOffset(4)]:{status:'late',comment:'10 мин'},[isoOffset(3)]:{status:'absent',comment:'по семейным'},[isoOffset(2)]:{status:'present'},[isoOffset(1)]:{status:'present'}},
       grades:{'Математика':{[isoOffset(3)]:'3',[isoOffset(1)]:'4'}}},
-    {id:4, name:'Елена Федорова', studentId:'004', group:'ИВТ-201', course:2,
-      attendance:{[isoOffset(4)]:'present',[isoOffset(3)]:'absent',[isoOffset(2)]:'present',[isoOffset(1)]:'present'},
+    {id:4, name:'Елена Федорова', studentId:'004', group:'ИВТ-201', course:2, phone:'+7 900 444-55-66', birthDate:'2004-11-05', address:'г. СПб',
+      attendance:{[isoOffset(4)]:{status:'present'},[isoOffset(3)]:{status:'absent',comment:'болела'},[isoOffset(2)]:{status:'present'},[isoOffset(1)]:{status:'present'}},
       grades:{'Математика':{[isoOffset(3)]:'4'},'Физика':{[isoOffset(1)]:'5'}}},
   ]
 };
 
 let state = load() || seed;
 
-/* --- migrate old data: add course, fix grades format --- */
+/* --- migrate old data --- */
 state.students.forEach(s=>{
   s.attendance = s.attendance || {};
   s.grades = s.grades || {};
   if(!s.course) s.course = 1;
+  if(s.phone === undefined) s.phone = '';
+  if(s.address === undefined) s.address = '';
+  if(s.birthDate === undefined) s.birthDate = '';
+  if(s.notes === undefined) s.notes = '';
+  if(s.photo === undefined) s.photo = '';
+  // migrate attendance string -> {status, comment}
+  Object.keys(s.attendance).forEach(d=>{
+    const v = s.attendance[d];
+    if(typeof v === 'string'){
+      s.attendance[d] = { status: v, comment: '' };
+    } else if(v && typeof v === 'object' && !v.status){
+      s.attendance[d] = { status: 'present', comment: '' };
+    }
+  });
   Object.keys(s.grades).forEach(k=>{
     if(k.indexOf('::') === -1 && typeof s.grades[k] === 'string'){
       const g = s.grades[k];
@@ -419,6 +486,21 @@ state.students.forEach(s=>{
 });
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 save();
+
+/* helpers for attendance object */
+function getStatus(att){
+  if(!att) return '';
+  if(typeof att === 'string') return att;
+  return att.status || '';
+}
+function getComment(att){
+  if(!att || typeof att === 'string') return '';
+  return att.comment || '';
+}
+function makeAtt(status, comment){
+  if(!status) return null;
+  return { status, comment: comment || '' };
+}
 
 /* ========== PASSWORD / LOCK ========== */
 function hashStr(s){
@@ -506,6 +588,13 @@ function toggleForm(id){
       document.getElementById('s-name').value = '';
       document.getElementById('s-group').value = '';
       document.getElementById('s-course').value = '1';
+      document.getElementById('s-phone').value = '';
+      document.getElementById('s-birth').value = '';
+      document.getElementById('s-address').value = '';
+      document.getElementById('s-notes').value = '';
+      document.getElementById('s-photo').value = '';
+      const prev = document.getElementById('s-photo-preview');
+      if(prev) prev.outerHTML = '<div id="s-photo-preview" class="photo-preview placeholder">📷</div>';
       document.getElementById('s-submit-btn').textContent = 'Добавить';
       document.getElementById('s-cancel-btn').style.display = 'none';
     }
@@ -519,10 +608,35 @@ function cancelEditStudent(){
   document.getElementById('s-studentid').value = '';
   document.getElementById('s-group').value = '';
   document.getElementById('s-course').value = '1';
+  document.getElementById('s-phone').value = '';
+  document.getElementById('s-birth').value = '';
+  document.getElementById('s-address').value = '';
+  document.getElementById('s-notes').value = '';
+  document.getElementById('s-photo').value = '';
+  const prev = document.getElementById('s-photo-preview');
+  if(prev) prev.outerHTML = '<div id="s-photo-preview" class="photo-preview placeholder">📷</div>';
   document.getElementById('s-submit-btn').textContent = 'Добавить';
   document.getElementById('s-cancel-btn').style.display = 'none';
   document.getElementById('s-form').style.display = 'none';
   document.getElementById('btnToggleForm').textContent = '+ Добавить студента';
+}
+function previewStudentPhoto(input){
+  const file = input.files && input.files[0];
+  const prev = document.getElementById('s-photo-preview');
+  if(!file){
+    prev.outerHTML = '<div id="s-photo-preview" class="photo-preview placeholder">📷</div>';
+    return;
+  }
+  if(file.size > 800000){ // ~800KB limit for localStorage
+    alert('Фото слишком большое. Выберите изображение меньше 800 КБ.');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    prev.outerHTML = `<img id="s-photo-preview" class="photo-preview" src="${reader.result}" alt="">`;
+  };
+  reader.readAsDataURL(file);
 }
 function fillGroupDatalist(){
   const groups = [...new Set(state.students.map(s=>s.group))].sort();
@@ -537,10 +651,13 @@ function studentAvg(s){
   return all.length ? (all.reduce((a,b)=>a+b,0)/all.length).toFixed(1) : null;
 }
 function attendancePct(s){
-  const vals = Object.values(s.attendance);
+  const vals = Object.values(s.attendance || {});
   if(!vals.length) return null;
-  const present = vals.filter(v=>v==='present').length;
+  const present = vals.filter(v => getStatus(v)==='present').length;
   return Math.round(present/vals.length*100);
+}
+function attStatusFromCache(cacheObj, d){
+  return getStatus(cacheObj && cacheObj[d]);
 }
 function nextStudentId(){
   const nums = state.students.map(s=>parseInt(s.studentId,10)).filter(n=>!isNaN(n));
@@ -587,21 +704,26 @@ function renderJournal(){
 
   let html = '<div class="journal-wrap"><table class="journal"><thead><tr><th class="j-name-col">Студент</th>';
   dates.forEach(d=>{
-    const presentCnt = students.filter(s => (journalCache[s.id] || {})[d] === 'present').length;
+    const presentCnt = students.filter(s => getStatus((journalCache[s.id] || {})[d]) === 'present').length;
     html += `<th>${fmtDate(d)}<span class="j-dow">${weekday(d)}</span><span class="j-count">${presentCnt||''}</span></th>`;
   });
   html += '<th>%</th></tr></thead><tbody>';
 
   students.forEach(s=>{
-    html += `<tr><td class="j-name" onclick="openStudent(${s.id})">${escapeHTML(s.name)}</td>`;
+    const photoHtml = s.photo
+      ? `<img class="avatar-sm" src="${s.photo}" alt="">`
+      : `<span class="avatar-sm placeholder">👤</span>`;
+    html += `<tr><td class="j-name" onclick="openStudent(${s.id})">${photoHtml}${escapeHTML(s.name)}</td>`;
     dates.forEach(d=>{
-      const st = (journalCache[s.id] || {})[d] || '';
-      html += `<td><button class="j-cell ${st?'mark-'+st:''}" onclick="cycleCell(${s.id},'${d}')">${MARK_SYM[st]||'·'}</button></td>`;
+      const att = (journalCache[s.id] || {})[d];
+      const st = getStatus(att);
+      const hasC = !!getComment(att);
+      html += `<td><button class="j-cell ${st?'mark-'+st:''} ${hasC?'has-comment':''}" onclick="cycleCell(${s.id},'${d}')" oncontextmenu="event.preventDefault(); openCommentModal(${s.id},'${d}');">${MARK_SYM[st]||'·'}</button></td>`;
     });
-    // live % from pending cache so it updates immediately
+    // live % from pending cache
     const cacheAtt = journalCache[s.id] || {};
     const vals = Object.values(cacheAtt);
-    const livePct = vals.length ? Math.round(vals.filter(v=>v==='present').length / vals.length * 100) : null;
+    const livePct = vals.length ? Math.round(vals.filter(v => getStatus(v)==='present').length / vals.length * 100) : null;
     html += `<td class="j-pct">${livePct===null?'—':livePct+'%'}</td></tr>`;
   });
   html += '</tbody></table></div>';
@@ -609,9 +731,21 @@ function renderJournal(){
   renderQuick();
 }
 function cycleCell(sid, d){
-  const cur = journalCache[sid][d] || '';
+  if(!journalCache[sid]) journalCache[sid] = {};
+  const cur = getStatus(journalCache[sid][d]);
   const next = MARKS[(MARKS.indexOf(cur)+1) % MARKS.length];
-  if(next) journalCache[sid][d] = next; else delete journalCache[sid][d];
+  if(next){
+    const prevComment = getComment(journalCache[sid][d]);
+    journalCache[sid][d] = makeAtt(next, prevComment);
+    // if became absent or late — offer comment
+    if(next === 'absent' || next === 'late'){
+      renderJournalKeepScroll();
+      setTimeout(() => openCommentModal(sid, d), 180);
+      return;
+    }
+  } else {
+    delete journalCache[sid][d];
+  }
   renderJournalKeepScroll();
 }
 function renderJournalKeepScroll(){
@@ -624,32 +758,77 @@ function renderJournalKeepScroll(){
 function addJournalDay(v){
   if(!v) return;
   journalExtraDays.add(v);
-  document.getElementById('j-add-day').value = '';
   renderJournal();
 }
-function removeJournalDay(){
-  const v = document.getElementById('j-add-day').value;
-  if(!v){
-    alert('Сначала выберите дату в поле выше, которую хотите удалить');
+function applyDateRange(){
+  const from = document.getElementById('j-date-from').value;
+  const to = document.getElementById('j-date-to').value;
+  if(!from || !to){
+    alert('Укажите обе даты: «с» и «по»');
     return;
   }
-  if(!confirm('Удалить все отметки за ' + fmtDate(v) + ' у выбранных студентов?')) return;
+  if(from > to){
+    alert('Дата «с» должна быть раньше даты «по»');
+    return;
+  }
+  const start = new Date(from + 'T00:00:00');
+  const end = new Date(to + 'T00:00:00');
+  // limit to avoid huge tables (max ~120 days)
+  const maxDays = 120;
+  let count = 0;
+  for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
+    const iso = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    journalExtraDays.add(iso);
+    count++;
+    if(count > maxDays){
+      alert('Слишком длинный период. Добавлено максимум ' + maxDays + ' дней.');
+      break;
+    }
+  }
+  renderJournal();
+  alert('Добавлено дней: ' + Math.min(count, maxDays) + ' ✅');
+}
+function removeJournalDay(){
+  const from = document.getElementById('j-date-from').value;
+  const to = document.getElementById('j-date-to').value;
+  // prefer single day from "from" if only one set, else range
+  let datesToRemove = [];
+  if(from && to && from <= to){
+    const start = new Date(from + 'T00:00:00');
+    const end = new Date(to + 'T00:00:00');
+    for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
+      datesToRemove.push(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`);
+    }
+  } else if(from){
+    datesToRemove = [from];
+  } else {
+    alert('Укажите дату (или период) в полях выше, которую хотите удалить');
+    return;
+  }
+  if(!confirm('Удалить отметки за выбранные дни (' + datesToRemove.length + ') у отфильтрованных студентов?')) return;
   journalStudents().forEach(s => {
-    if(journalCache[s.id]) delete journalCache[s.id][v];
-    if(s.attendance) delete s.attendance[v];
+    datesToRemove.forEach(v => {
+      if(journalCache[s.id]) delete journalCache[s.id][v];
+      if(s.attendance) delete s.attendance[v];
+    });
   });
-  journalExtraDays.delete(v);
-  document.getElementById('j-add-day').value = '';
+  datesToRemove.forEach(v => journalExtraDays.delete(v));
   save();
   renderJournal();
-  alert('День удалён ✅');
+  alert('Дни удалены ✅');
 }
 function saveJournal(){
   journalStudents().forEach(s=>{
-    s.attendance = Object.assign({}, journalCache[s.id]);
+    // clean nulls
+    const clean = {};
+    Object.entries(journalCache[s.id] || {}).forEach(([d, att])=>{
+      const st = getStatus(att);
+      if(st) clean[d] = makeAtt(st, getComment(att));
+    });
+    s.attendance = clean;
   });
   journalExtraDays = new Set([...journalExtraDays].filter(d=>{
-    return journalStudents().some(s=>s.attendance[d]);
+    return journalStudents().some(s => s.attendance[d]);
   }));
   save(); renderJournal();
   alert('Журнал сохранён ✅');
@@ -664,7 +843,7 @@ function renderQuick(){
   const el = document.getElementById('j-quick');
   if(!students.length){ el.innerHTML = '<div class="empty">Нет студентов</div>'; return; }
   el.innerHTML = students.map(s=>{
-    const st = (journalCache[s.id] || {})[d] || '';
+    const st = getStatus((journalCache[s.id] || {})[d]);
     return `<div class="attendance-row">
       <div class="att-name">${escapeHTML(s.name)} <span style="color:var(--muted); font-size:11px;">${escapeHTML(s.group)}</span></div>
       <div class="att-control">
@@ -679,10 +858,59 @@ function quickSet(sid, status){
   const dateEl = document.getElementById('j-quick-date');
   const d = (dateEl && dateEl.value) || todayISO();
   if (!journalCache[sid]) journalCache[sid] = {};
-  const cur = journalCache[sid][d];
-  if (cur === status) delete journalCache[sid][d];
-  else journalCache[sid][d] = status;
+  const cur = getStatus(journalCache[sid][d]);
+  if (cur === status) {
+    delete journalCache[sid][d];
+  } else {
+    const prevComment = getComment(journalCache[sid][d]);
+    journalCache[sid][d] = makeAtt(status, prevComment);
+    if(status === 'absent' || status === 'late'){
+      journalExtraDays.add(d);
+      renderJournalKeepScroll();
+      setTimeout(() => openCommentModal(sid, d), 180);
+      return;
+    }
+  }
   journalExtraDays.add(d);
+  renderJournalKeepScroll();
+}
+
+/* --- comment modal --- */
+let commentTarget = null; // {sid, date}
+function openCommentModal(sid, d){
+  const s = state.students.find(x => x.id === sid);
+  if(!s) return;
+  commentTarget = {sid, date: d};
+  const att = (journalCache[sid] || {})[d];
+  const st = getStatus(att);
+  document.getElementById('c-title').textContent = st === 'late' ? 'Комментарий к опозданию' : (st === 'absent' ? 'Комментарий к отсутствию' : 'Комментарий');
+  document.getElementById('c-sub').textContent = s.name + ' · ' + fmtDate(d) + ' (' + weekday(d) + ')';
+  document.getElementById('c-text').value = getComment(att);
+  document.getElementById('commentModal').classList.add('open');
+  setTimeout(() => document.getElementById('c-text').focus(), 100);
+}
+function closeCommentModal(){
+  document.getElementById('commentModal').classList.remove('open');
+  commentTarget = null;
+}
+function saveComment(){
+  if(!commentTarget) return;
+  const {sid, date} = commentTarget;
+  if(!journalCache[sid]) journalCache[sid] = {};
+  const st = getStatus(journalCache[sid][date]) || 'absent';
+  const text = document.getElementById('c-text').value.trim();
+  journalCache[sid][date] = makeAtt(st, text);
+  closeCommentModal();
+  renderJournalKeepScroll();
+}
+function clearComment(){
+  if(!commentTarget) return;
+  const {sid, date} = commentTarget;
+  if(journalCache[sid] && journalCache[sid][date]){
+    const st = getStatus(journalCache[sid][date]);
+    journalCache[sid][date] = makeAtt(st, '');
+  }
+  document.getElementById('c-text').value = '';
   renderJournalKeepScroll();
 }
 
@@ -692,6 +920,17 @@ function saveStudent(){
   const sid = document.getElementById('s-studentid').value.trim() || nextStudentId();
   const grp = document.getElementById('s-group').value.trim() || 'Без группы';
   const course = parseInt(document.getElementById('s-course').value) || 1;
+  const phone = document.getElementById('s-phone').value.trim();
+  const birthDate = document.getElementById('s-birth').value;
+  const address = document.getElementById('s-address').value.trim();
+  const notes = document.getElementById('s-notes').value.trim();
+  const photoPrev = document.getElementById('s-photo-preview');
+  let photo = '';
+  if(photoPrev && photoPrev.tagName === 'IMG' && photoPrev.src && photoPrev.src.startsWith('data:')){
+    photo = photoPrev.src;
+  } else if(editingId){
+    photo = (state.students.find(x=>x.id===editingId) || {}).photo || '';
+  }
   if(!name){ alert('Укажите имя студента'); return; }
 
   if(editingId){
@@ -701,17 +940,23 @@ function saveStudent(){
     s.studentId = sid;
     s.group = grp;
     s.course = course;
-    // keep pending cache name consistent (cache uses id)
+    s.phone = phone;
+    s.birthDate = birthDate;
+    s.address = address;
+    s.notes = notes;
+    if(photo) s.photo = photo;
     cancelEditStudent();
     save();
     renderStudents();
     renderJournal();
     alert('Данные студента обновлены ✅');
   } else {
-    state.students.push({id:Date.now(), name, studentId:sid, group:grp, course, attendance:{}, grades:{}});
-    document.getElementById('s-name').value='';
-    document.getElementById('s-group').value='';
-    document.getElementById('s-form').style.display='none';
+    state.students.push({
+      id: Date.now(), name, studentId: sid, group: grp, course,
+      phone, birthDate, address, notes, photo: photo || '',
+      attendance: {}, grades: {}
+    });
+    cancelEditStudent();
     save(); renderStudents();
   }
 }
@@ -723,12 +968,22 @@ function startEditStudent(id){
   document.getElementById('s-studentid').value = s.studentId;
   document.getElementById('s-group').value = s.group;
   document.getElementById('s-course').value = String(s.course || 1);
+  document.getElementById('s-phone').value = s.phone || '';
+  document.getElementById('s-birth').value = s.birthDate || '';
+  document.getElementById('s-address').value = s.address || '';
+  document.getElementById('s-notes').value = s.notes || '';
+  const prev = document.getElementById('s-photo-preview');
+  if(s.photo){
+    if(prev) prev.outerHTML = `<img id="s-photo-preview" class="photo-preview" src="${s.photo}" alt="">`;
+  } else {
+    if(prev) prev.outerHTML = '<div id="s-photo-preview" class="photo-preview placeholder">📷</div>';
+  }
+  document.getElementById('s-photo').value = '';
   document.getElementById('s-submit-btn').textContent = '💾 Сохранить изменения';
   document.getElementById('s-cancel-btn').style.display = 'block';
   document.getElementById('s-form').style.display = 'block';
   document.getElementById('btnToggleForm').textContent = 'Редактирование студента';
   document.getElementById('s-name').focus();
-  // scroll form into view on mobile
   document.getElementById('s-form').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 function delStudent(id){
@@ -752,14 +1007,17 @@ function renderStudents(){
   if(!arr.length){ list.innerHTML = '<div class="empty">Студентов не найдено</div>'; return; }
 
   list.innerHTML = arr.map(s=>{
-    const attDates = Object.keys(s.attendance);
-    const present = attDates.filter(d=>s.attendance[d]==='present').length;
-    const absent = attDates.filter(d=>s.attendance[d]==='absent').length;
-    const late = attDates.filter(d=>s.attendance[d]==='late').length;
+    const attDates = Object.keys(s.attendance || {});
+    const present = attDates.filter(d => getStatus(s.attendance[d])==='present').length;
+    const absent = attDates.filter(d => getStatus(s.attendance[d])==='absent').length;
+    const late = attDates.filter(d => getStatus(s.attendance[d])==='late').length;
     const avg = studentAvg(s);
+    const photoHtml = s.photo
+      ? `<img class="avatar-sm" src="${s.photo}" alt="">`
+      : `<span class="avatar-sm placeholder">👤</span>`;
     return `<div class="student-row" onclick="openStudent(${s.id})">
       <div class="student-name">
-        <div>${escapeHTML(s.name)} <span style="color:var(--muted); font-weight:400; font-size:12px;">ID ${escapeHTML(s.studentId)}</span></div>
+        <div style="display:flex; align-items:center;">${photoHtml}<span>${escapeHTML(s.name)} <span style="color:var(--muted); font-weight:400; font-size:12px;">ID ${escapeHTML(s.studentId)}</span></span></div>
         <div style="display:flex; gap:2px;">
           <button class="icon-btn" title="Редактировать" onclick="event.stopPropagation(); startEditStudent(${s.id})">✎</button>
           <button class="icon-btn danger" title="Удалить" onclick="event.stopPropagation(); delStudent(${s.id})">✕</button>
@@ -781,11 +1039,35 @@ function renderStudents(){
 function openStudent(id){
   const s = state.students.find(x=>x.id===id);
   if(!s) return;
-  document.getElementById('m-name').textContent = s.name;
-  document.getElementById('m-sub').textContent = `ID ${s.studentId} · ${s.course} курс · ${s.group}`;
+
+  // ID card
+  const photoBlock = s.photo
+    ? `<img class="id-photo" src="${s.photo}" alt="">`
+    : `<div class="id-photo placeholder">👤</div>`;
+  const birthStr = s.birthDate ? fmtDate(s.birthDate) : '—';
+  document.getElementById('m-idcard').innerHTML = `
+    <div class="id-card">
+      <div class="id-badge">🪪 ID ${escapeHTML(s.studentId)}</div>
+      <div class="id-top">
+        ${photoBlock}
+        <div class="id-info">
+          <div class="id-name">${escapeHTML(s.name)}</div>
+          <div class="id-meta">${s.course} курс · ${escapeHTML(s.group)}</div>
+        </div>
+      </div>
+      <div class="id-fields">
+        <div><span class="lbl">Телефон</span><span class="val">${escapeHTML(s.phone || '—')}</span></div>
+        <div><span class="lbl">Дата рождения</span><span class="val">${birthStr}</span></div>
+        <div style="grid-column:1/-1;"><span class="lbl">Адрес</span><span class="val">${escapeHTML(s.address || '—')}</span></div>
+        ${s.notes ? `<div style="grid-column:1/-1;"><span class="lbl">Заметки</span><span class="val">${escapeHTML(s.notes)}</span></div>` : ''}
+      </div>
+    </div>`;
+
   const pct = attendancePct(s);
-  const vals = Object.values(s.attendance);
-  const pr = vals.filter(v=>v==='present').length, ab = vals.filter(v=>v==='absent').length, la = vals.filter(v=>v==='late').length;
+  const vals = Object.values(s.attendance || {});
+  const pr = vals.filter(v => getStatus(v)==='present').length;
+  const ab = vals.filter(v => getStatus(v)==='absent').length;
+  const la = vals.filter(v => getStatus(v)==='late').length;
   document.getElementById('m-attendance').innerHTML = `
     <div class="m-line"><span>Всего занятий</span><b>${vals.length}</b></div>
     <div class="m-line"><span>Присутствовал</span><b style="color:var(--success)">${pr}</b></div>
@@ -794,14 +1076,25 @@ function openStudent(id){
     <div class="m-line"><span>Процент посещаемости</span><b>${pct===null?'—':pct+'%'}</b></div>`;
 
   const gRows = [];
-  Object.entries(s.grades).forEach(([subj, byDate])=>{
+  Object.entries(s.grades || {}).forEach(([subj, byDate])=>{
     Object.entries(byDate).forEach(([d,g])=> gRows.push({subj, d, g}));
   });
   gRows.sort((a,b)=>b.d.localeCompare(a.d));
   document.getElementById('m-grades').innerHTML = gRows.length
     ? gRows.slice(0,15).map(r=>`<div class="m-line"><span>${escapeHTML(r.subj)} <span style="color:var(--muted); font-size:11px;">${fmtDate(r.d)}</span></span><b>${escapeHTML(r.g)}</b></div>`).join('')
     : '<div class="empty">Оценок пока нет</div>';
-  // store current id for edit button
+
+  // comments list
+  const comments = [];
+  Object.entries(s.attendance || {}).forEach(([d, att])=>{
+    const c = getComment(att);
+    if(c) comments.push({d, status: getStatus(att), c});
+  });
+  comments.sort((a,b)=>b.d.localeCompare(a.d));
+  document.getElementById('m-comments').innerHTML = comments.length
+    ? comments.map(r => `<div class="m-line"><span>${fmtDate(r.d)} <span style="color:var(--muted);">${r.status==='late'?'⏱':'✗'}</span></span><span style="text-align:right; max-width:55%;">${escapeHTML(r.c)}</span></div>`).join('')
+    : '<div class="empty">Комментариев пока нет</div>';
+
   document.getElementById('m-edit-btn').onclick = function(){ closeModal(); startEditStudent(id); switchView('students'); };
   document.getElementById('modalBack').classList.add('open');
 }
@@ -894,8 +1187,9 @@ function renderStats(){
 
   let totalPresent = 0, totalAbsent = 0, totalLate = 0, totalDays = 0;
   students.forEach(s=>{
-    Object.values(s.attendance).forEach(status=>{
+    Object.values(s.attendance || {}).forEach(att=>{
       totalDays++;
+      const status = getStatus(att);
       if(status==='present') totalPresent++;
       else if(status==='absent') totalAbsent++;
       else if(status==='late') totalLate++;
@@ -913,8 +1207,8 @@ function renderStats(){
     </div>`;
 
   const att = students.map(s=>{
-    const dates = Object.values(s.attendance);
-    const present = dates.filter(d=>d==='present').length;
+    const dates = Object.values(s.attendance || {});
+    const present = dates.filter(v => getStatus(v)==='present').length;
     const pct = dates.length ? Math.round(present/dates.length*100) : 0;
     return {s, pct, present, total:dates.length};
   }).sort((a,b)=> b.pct-a.pct || byName(a.s,b.s));
@@ -1001,8 +1295,9 @@ document.getElementById('g-date').value = todayISO();
 const quickDateEl = document.getElementById('j-quick-date');
 if (quickDateEl) quickDateEl.value = todayISO();
 document.getElementById('btnAddDay').addEventListener('click', function(){
-  document.getElementById('j-add-day').click();
-  document.getElementById('j-add-day').focus();
+  const v = document.getElementById('j-date-from').value || todayISO();
+  addJournalDay(v);
+  if(!document.getElementById('j-date-from').value) document.getElementById('j-date-from').value = v;
 });
 document.getElementById('btnToggleForm').addEventListener('click', function(){ toggleForm('s-form'); });
 document.getElementById('lockInput').addEventListener('keydown', function(e){ if(e.key==='Enter') tryUnlock(); });
