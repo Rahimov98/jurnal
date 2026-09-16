@@ -186,7 +186,10 @@
           </select>
           <button class="ghost" style="width:auto; padding:9px 14px;" id="btnAddDay" type="button">+ День</button>
         </div>
-        <input id="j-add-day" type="date" style="margin-bottom:10px;" onchange="addJournalDay(this.value)">
+        <div class="two-col" style="margin-bottom:10px;">
+          <input id="j-add-day" type="date" onchange="addJournalDay(this.value)">
+          <button class="ghost" style="width:auto; padding:9px 12px; color:var(--danger); border-color:var(--danger);" type="button" onclick="removeJournalDay()">− День</button>
+        </div>
         <div id="j-table"></div>
         <div class="legend">
           <span><b style="color:var(--success)">✓</b> присутствовал</span>
@@ -223,7 +226,7 @@
         <div id="s-form" style="display:none; margin-top:10px;">
           <div class="form-row">
             <input id="s-name" placeholder="Полное имя">
-            <input id="s-studentid" readonly placeholder="ID студента">
+            <input id="s-studentid" placeholder="ID студента">
             <input id="s-group" list="groups-list" placeholder="Группа (напр. ИВТ-101)">
             <select id="s-course">
               <option value="1">1 курс</option>
@@ -231,7 +234,8 @@
               <option value="3">3 курс</option>
               <option value="4">4 курс</option>
             </select>
-            <button class="primary" onclick="addStudent()">Добавить</button>
+            <button class="primary" id="s-submit-btn" onclick="saveStudent()">Добавить</button>
+            <button class="ghost" id="s-cancel-btn" style="display:none; margin-top:6px;" onclick="cancelEditStudent()">Отмена</button>
           </div>
         </div>
       </div>
@@ -362,6 +366,7 @@
       <h4>Оценки</h4>
       <div id="m-grades"></div>
     </div>
+    <button class="primary" id="m-edit-btn" style="margin-bottom:8px;">✎ Редактировать</button>
     <button class="ghost m-close" onclick="closeModal()">Закрыть</button>
   </div>
 </div>
@@ -490,10 +495,34 @@ function switchView(v){
   if(v==='grades'){ renderGrades(); renderGradeHistory(); }
   if(v==='stats') renderStats();
 }
+let editingId = null;
 function toggleForm(id){
   const el=document.getElementById(id);
-  el.style.display = el.style.display==='none'?'block':'none';
-  if(el.style.display==='block') document.getElementById('s-studentid').value = nextStudentId();
+  const willShow = el.style.display==='none';
+  el.style.display = willShow ? 'block' : 'none';
+  if(willShow){
+    if(!editingId){
+      document.getElementById('s-studentid').value = nextStudentId();
+      document.getElementById('s-name').value = '';
+      document.getElementById('s-group').value = '';
+      document.getElementById('s-course').value = '1';
+      document.getElementById('s-submit-btn').textContent = 'Добавить';
+      document.getElementById('s-cancel-btn').style.display = 'none';
+    }
+  } else {
+    cancelEditStudent();
+  }
+}
+function cancelEditStudent(){
+  editingId = null;
+  document.getElementById('s-name').value = '';
+  document.getElementById('s-studentid').value = '';
+  document.getElementById('s-group').value = '';
+  document.getElementById('s-course').value = '1';
+  document.getElementById('s-submit-btn').textContent = 'Добавить';
+  document.getElementById('s-cancel-btn').style.display = 'none';
+  document.getElementById('s-form').style.display = 'none';
+  document.getElementById('btnToggleForm').textContent = '+ Добавить студента';
 }
 function fillGroupDatalist(){
   const groups = [...new Set(state.students.map(s=>s.group))].sort();
@@ -569,8 +598,11 @@ function renderJournal(){
       const st = (journalCache[s.id] || {})[d] || '';
       html += `<td><button class="j-cell ${st?'mark-'+st:''}" onclick="cycleCell(${s.id},'${d}')">${MARK_SYM[st]||'·'}</button></td>`;
     });
-    const pct = attendancePct(s);
-    html += `<td class="j-pct">${pct===null?'—':pct+'%'}</td></tr>`;
+    // live % from pending cache so it updates immediately
+    const cacheAtt = journalCache[s.id] || {};
+    const vals = Object.values(cacheAtt);
+    const livePct = vals.length ? Math.round(vals.filter(v=>v==='present').length / vals.length * 100) : null;
+    html += `<td class="j-pct">${livePct===null?'—':livePct+'%'}</td></tr>`;
   });
   html += '</tbody></table></div>';
   wrap.innerHTML = html;
@@ -594,6 +626,23 @@ function addJournalDay(v){
   journalExtraDays.add(v);
   document.getElementById('j-add-day').value = '';
   renderJournal();
+}
+function removeJournalDay(){
+  const v = document.getElementById('j-add-day').value;
+  if(!v){
+    alert('Сначала выберите дату в поле выше, которую хотите удалить');
+    return;
+  }
+  if(!confirm('Удалить все отметки за ' + fmtDate(v) + ' у выбранных студентов?')) return;
+  journalStudents().forEach(s => {
+    if(journalCache[s.id]) delete journalCache[s.id][v];
+    if(s.attendance) delete s.attendance[v];
+  });
+  journalExtraDays.delete(v);
+  document.getElementById('j-add-day').value = '';
+  save();
+  renderJournal();
+  alert('День удалён ✅');
 }
 function saveJournal(){
   journalStudents().forEach(s=>{
@@ -638,22 +687,56 @@ function quickSet(sid, status){
 }
 
 /* ========== 2. STUDENTS ========== */
-function addStudent(){
+function saveStudent(){
   const name = document.getElementById('s-name').value.trim();
   const sid = document.getElementById('s-studentid').value.trim() || nextStudentId();
   const grp = document.getElementById('s-group').value.trim() || 'Без группы';
   const course = parseInt(document.getElementById('s-course').value) || 1;
   if(!name){ alert('Укажите имя студента'); return; }
-  state.students.push({id:Date.now(), name, studentId:sid, group:grp, course, attendance:{}, grades:{}});
-  document.getElementById('s-name').value='';
-  document.getElementById('s-group').value='';
-  document.getElementById('s-form').style.display='none';
-  save(); renderStudents();
+
+  if(editingId){
+    const s = state.students.find(x => x.id === editingId);
+    if(!s){ alert('Студент не найден'); return; }
+    s.name = name;
+    s.studentId = sid;
+    s.group = grp;
+    s.course = course;
+    // keep pending cache name consistent (cache uses id)
+    cancelEditStudent();
+    save();
+    renderStudents();
+    renderJournal();
+    alert('Данные студента обновлены ✅');
+  } else {
+    state.students.push({id:Date.now(), name, studentId:sid, group:grp, course, attendance:{}, grades:{}});
+    document.getElementById('s-name').value='';
+    document.getElementById('s-group').value='';
+    document.getElementById('s-form').style.display='none';
+    save(); renderStudents();
+  }
+}
+function startEditStudent(id){
+  const s = state.students.find(x => x.id === id);
+  if(!s) return;
+  editingId = id;
+  document.getElementById('s-name').value = s.name;
+  document.getElementById('s-studentid').value = s.studentId;
+  document.getElementById('s-group').value = s.group;
+  document.getElementById('s-course').value = String(s.course || 1);
+  document.getElementById('s-submit-btn').textContent = '💾 Сохранить изменения';
+  document.getElementById('s-cancel-btn').style.display = 'block';
+  document.getElementById('s-form').style.display = 'block';
+  document.getElementById('btnToggleForm').textContent = 'Редактирование студента';
+  document.getElementById('s-name').focus();
+  // scroll form into view on mobile
+  document.getElementById('s-form').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 function delStudent(id){
   if(!confirm('Удалить студента?')) return;
   state.students = state.students.filter(s=>s.id!==id);
-  save(); renderStudents();
+  if(journalCache[id]) delete journalCache[id];
+  if(editingId === id) cancelEditStudent();
+  save(); renderStudents(); renderJournal();
 }
 function renderStudents(){
   fillGroupDatalist();
@@ -677,7 +760,10 @@ function renderStudents(){
     return `<div class="student-row" onclick="openStudent(${s.id})">
       <div class="student-name">
         <div>${escapeHTML(s.name)} <span style="color:var(--muted); font-weight:400; font-size:12px;">ID ${escapeHTML(s.studentId)}</span></div>
-        <button class="icon-btn danger" onclick="event.stopPropagation(); delStudent(${s.id})">✕</button>
+        <div style="display:flex; gap:2px;">
+          <button class="icon-btn" title="Редактировать" onclick="event.stopPropagation(); startEditStudent(${s.id})">✎</button>
+          <button class="icon-btn danger" title="Удалить" onclick="event.stopPropagation(); delStudent(${s.id})">✕</button>
+        </div>
       </div>
       <div style="font-size:11px; color:var(--primary); margin-bottom:6px; font-weight:600;">${s.course} курс · ${escapeHTML(s.group)}</div>
       <div class="student-stats">
@@ -715,6 +801,8 @@ function openStudent(id){
   document.getElementById('m-grades').innerHTML = gRows.length
     ? gRows.slice(0,15).map(r=>`<div class="m-line"><span>${escapeHTML(r.subj)} <span style="color:var(--muted); font-size:11px;">${fmtDate(r.d)}</span></span><b>${escapeHTML(r.g)}</b></div>`).join('')
     : '<div class="empty">Оценок пока нет</div>';
+  // store current id for edit button
+  document.getElementById('m-edit-btn').onclick = function(){ closeModal(); startEditStudent(id); switchView('students'); };
   document.getElementById('modalBack').classList.add('open');
 }
 function closeModal(){ document.getElementById('modalBack').classList.remove('open'); }
