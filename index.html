@@ -253,7 +253,7 @@
           <span><b style="color:var(--success)">✓</b> присутствовал</span>
           <span><b style="color:var(--danger)">✗</b> отсутствовал</span>
           <span><b style="color:var(--warning)">⏱</b> опоздание</span>
-          <span>нажми на ячейку — отметка меняется</span>
+          <span>нажатие — смена отметки · долгое нажатие — комментарий 💬</span>
         </div>
         <button class="primary" style="margin-top:12px;" onclick="saveJournal()">💾 Сохранить журнал</button>
       </div>
@@ -751,7 +751,14 @@ function renderJournal(){
       const att = (journalCache[s.id] || {})[d];
       const st = getStatus(att);
       const hasC = !!getComment(att);
-      html += `<td><button class="j-cell ${st?'mark-'+st:''} ${hasC?'has-comment':''}" onclick="cycleCell(${s.id},'${d}')" oncontextmenu="event.preventDefault(); openCommentModal(${s.id},'${d}');">${MARK_SYM[st]||'·'}</button></td>`;
+      const cmt = getComment(att);
+      html += `<td><button class="j-cell ${st?'mark-'+st:''} ${hasC?'has-comment':''}" title="${cmt ? escapeHTML(cmt) : 'Долгое нажатие — комментарий'}"
+        onclick="cycleCell(${s.id},'${d}')"
+        oncontextmenu="event.preventDefault(); openCommentModal(${s.id},'${d}');"
+        ontouchstart="cellTouchStart(event, ${s.id}, '${d}')"
+        ontouchend="cellTouchEnd(event)"
+        ontouchmove="cellTouchCancel()"
+        >${MARK_SYM[st]||'·'}</button></td>`;
     });
     // live % from pending cache
     const cacheAtt = journalCache[s.id] || {};
@@ -765,18 +772,16 @@ function renderJournal(){
 }
 function cycleCell(sid, d){
   if(!journalCache[sid]) journalCache[sid] = {};
-  const cur = getStatus(journalCache[sid][d]);
+  const curAtt = journalCache[sid][d];
+  const cur = getStatus(curAtt);
+  const prevComment = getComment(curAtt); // всегда сохраняем комментарий
   const next = MARKS[(MARKS.indexOf(cur)+1) % MARKS.length];
   if(next){
-    const prevComment = getComment(journalCache[sid][d]);
+    // комментарий сохраняется при смене present ↔ absent ↔ late
+    // очищается только если отметку убрали полностью (next === '')
     journalCache[sid][d] = makeAtt(next, prevComment);
-    // if became absent or late — offer comment
-    if(next === 'absent' || next === 'late'){
-      renderJournalKeepScroll();
-      setTimeout(() => openCommentModal(sid, d), 180);
-      return;
-    }
   } else {
+    // полная очистка ячейки
     delete journalCache[sid][d];
   }
   renderJournalKeepScroll();
@@ -891,21 +896,37 @@ function quickSet(sid, status){
   const dateEl = document.getElementById('j-quick-date');
   const d = (dateEl && dateEl.value) || todayISO();
   if (!journalCache[sid]) journalCache[sid] = {};
-  const cur = getStatus(journalCache[sid][d]);
+  const curAtt = journalCache[sid][d];
+  const cur = getStatus(curAtt);
+  const prevComment = getComment(curAtt);
   if (cur === status) {
+    // повторное нажатие той же кнопки — снять отметку
     delete journalCache[sid][d];
   } else {
-    const prevComment = getComment(journalCache[sid][d]);
+    // смена статуса — комментарий сохраняется
     journalCache[sid][d] = makeAtt(status, prevComment);
-    if(status === 'absent' || status === 'late'){
-      journalExtraDays.add(d);
-      renderJournalKeepScroll();
-      setTimeout(() => openCommentModal(sid, d), 180);
-      return;
-    }
   }
   journalExtraDays.add(d);
   renderJournalKeepScroll();
+}
+
+/* --- long press for comment (mobile) --- */
+let _touchTimer = null;
+let _touchMoved = false;
+function cellTouchStart(e, sid, d){
+  _touchMoved = false;
+  _touchTimer = setTimeout(() => {
+    _touchTimer = null;
+    e.preventDefault();
+    openCommentModal(sid, d);
+  }, 450);
+}
+function cellTouchEnd(e){
+  if(_touchTimer){ clearTimeout(_touchTimer); _touchTimer = null; }
+}
+function cellTouchCancel(){
+  _touchMoved = true;
+  if(_touchTimer){ clearTimeout(_touchTimer); _touchTimer = null; }
 }
 
 /* --- comment modal --- */
